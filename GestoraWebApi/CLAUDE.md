@@ -315,11 +315,24 @@ fisso).
   (`dotnet user-secrets`), non in `appsettings.Development.json` (solo placeholder vuoti).
   Percorso e comandi in `RUNBOOK.md`. In produzione: solo variabili d'ambiente di Azure App
   Service (doppio underscore, vedi `RUNBOOK.md` §6).
+- **Chiavi di Data Protection** (`V2-018`): firmano i token di Identity (il link di conferma
+  email, poi il recupero password). Stanno nel database, tabella `DataProtectionKeys` (migration 9),
+  registrate da `Extensions/DataProtectionExtensions.AddChiaviDataProtection` con nome
+  applicazione fisso «Gestora». **Non cambiare quel nome**: le chiavi salvate non verrebbero più
+  riconosciute e tutti i link già inviati smetterebbero di funzionare. Sono in chiaro nel
+  database (scelta voluta): l'avviso «No XML encryptor configured» all'avvio è atteso.
+- **Header di sicurezza** (`V2-018`): `Infrastructure/Middleware/SicurezzaHeaderMiddleware` li mette
+  su ogni risposta (`nosniff`, `X-Frame-Options: DENY`, `Content-Security-Policy: default-src
+  'none'; frame-ancestors 'none'`, `Referrer-Policy: no-referrer`; `Strict-Transport-Security`
+  solo fuori da Development). Sta **dopo** Swagger, che con quella CSP non si caricherebbe, e
+  prima di tutto il resto. HSTS è scritto a mano: **non sostituirlo con `UseHsts`**, che dietro il
+  proxy di Azure vede HTTP e non lo aggiungerebbe mai. L'header `Server` è spento in `Program.cs`
+  (`AddServerHeader = false`).
 
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello. **403 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware. **409 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

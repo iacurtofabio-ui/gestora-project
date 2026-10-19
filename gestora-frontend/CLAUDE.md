@@ -15,7 +15,7 @@ logout + redirect su 401).
 
 ```
 npm run lint      # zero errori
-npm test          # 101 test, Vitest + Testing Library
+npm test          # 103 test, Vitest + Testing Library
 npm run build     # controlla i tipi — npm test NON lo fa (vedi sezione Test)
 ```
 Se hai toccato un componente/pagina visibile e non hai verificato a mano nel browser, dillo
@@ -32,6 +32,26 @@ nella dashboard Vercel, puntata al backend Azure. **Deve essere di tipo *Config*
 non *Secret***: un valore salvato come Secret non arriva alla build nel modo che Vite si aspetta
 (vedi `RUNBOOK.md` §8). Modificare `.env.local` non ha alcun effetto sulla build di produzione.
 Aprire `localhost:5173` mostra sempre i dati del DB locale — voluto.
+
+## Header di sicurezza su Vercel (`V2-018`)
+
+`vercel.json` manda su ogni pagina una **Content-Security-Policy** (l'elenco di ciò che il browser
+può caricare ed eseguire) più `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` e
+`Permissions-Policy`. Tre punti che si rompono senza errori di build:
+
+- **Lo script del tema in `index.html` è ammesso per la sua impronta** (`sha256-...`), non con
+  `'unsafe-inline'`. Cambiarlo, anche di uno spazio, cambia l'impronta: il test
+  `lib/__tests__/vercelHeaders.test.ts` fallisce e dice di aggiornare `vercel.json`. Non risolvere
+  aggiungendo `'unsafe-inline'` agli script.
+- **`connect-src` contiene l'indirizzo del backend Azure, scritto a mano.** Se il backend cambia
+  indirizzo, va cambiato anche lì, oltre che in `VITE_API_URL`: altrimenti il sito si carica ma
+  ogni chiamata all'API viene bloccata dal browser.
+- **`style-src` ha `'unsafe-inline'`** perché `sonner` (le notifiche) inserisce da solo un blocco
+  di stili nella pagina. Per gli stili il rischio è basso; per gli script no.
+
+Non si prova con `npm run dev` (Vite non legge `vercel.json`): si prova servendo `dist` con gli
+stessi header, oppure in produzione dagli strumenti del browser (scheda *Console*: nessun
+«Refused to ...»).
 
 ## Tavolozza e tema — leggere prima di scrivere un colore
 
@@ -212,7 +232,7 @@ l'etichetta è `sr-only` (design con segnaposto).
 
 ## Test
 
-**101 test** con Vitest + Testing Library: portale in manutenzione (1 + 4 della lettura di `VITE_MANUTENZIONE`, `V2-016`), quali richieste portano il token (4, `V2-003`), lettura difensiva del token (10), rinnovo del token in
+**103 test** con Vitest + Testing Library: impronta dello script del tema nella CSP di `vercel.json` (2, `V2-018`), portale in manutenzione (1 + 4 della lettura di `VITE_MANUTENZIONE`, `V2-016`), quali richieste portano il token (4, `V2-003`), lettura difensiva del token (10), rinnovo del token in
 `AuthProvider` (5) e suo momento (3), helper errori (5 + 5 del login + 2 del login con email non
 confermata, `V2-003` + 1 per campo + 2 del limite di richieste), pagina di conferma dell'email (3), messaggio della pagina pubblica sul 429 (1), regole di nome utente e campi numerici (8),
 `ProtectedRoute` su accesso e ruoli (6), scelta fascia oraria in `PrenotazioneModal` (5), limite
