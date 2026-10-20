@@ -1,13 +1,14 @@
 ﻿using GestoraWebApi.Auth;
 using GestoraWebApi.Enums;
 using GestoraWebApi.Models;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestoraWebApi.Context
 {
-    public class GestoraContext : IdentityDbContext<ApplicationUser>
+    public class GestoraContext : IdentityDbContext<ApplicationUser>, IDataProtectionKeyContext
     {
 
         public DbSet<Logging> LogActivities { get; set; }
@@ -16,6 +17,10 @@ namespace GestoraWebApi.Context
         public DbSet<Prenotazione> Prenotazioni { get; set; }
         public DbSet<PrenotazionePostazione> PrenotazioniPostazioni { get; set; }
         public DbSet<Zona> Zone { get; set; }
+
+        // V2-018: chiavi di Data Protection (firmano i link di conferma email). Vedi
+        // DataProtectionExtensions.
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
 
 

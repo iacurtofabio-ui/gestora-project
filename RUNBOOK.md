@@ -54,7 +54,7 @@ cd "...\gestora-frontend"; npm run build
 cd "...\gestora-frontend"; npm run lint
 ```
 
-Valori attesi oggi: **403** test backend, **101** frontend, build senza errori, lint senza errori.
+Valori attesi oggi: **409** test backend, **103** frontend, build senza errori, lint senza errori.
 I test del backend stanno in `GestoraWebApi.Tests/`, accanto all'API: si lanciano dalla radice
 attraverso `Gestora.sln`.
 
@@ -140,7 +140,9 @@ qualcosa va storto a metà si resta con un database mezzo vuoto e nessun modo di
   con `psql -c`. Su Neon il ruolo `neondb_owner` può non riuscire a cancellare il database stesso.
   Porta via anche le tabelle `QRTZ_*`: poi `dotnet ef database update` e `quartz_postgres.sql`.
 - **`pg_dump` 17 non funziona con Neon (server 18)**: dà «la versione del server non corrisponde».
-  Per un backup serve il client PostgreSQL 18, oppure un branch Neon (*Branches → Create branch*).
+  Il client 18 è installato: si chiama con il percorso completo,
+  `C:\Program Files\PostgreSQL\18\bin\pg_dump.exe` (procedura in §6). In alternativa un branch
+  Neon (*Branches → Create branch*).
 - La password si passa con `$env:PGPASSWORD` (inserita con `Read-Host -AsSecureString`) e a EF con
   `$env:ConnectionStrings__DefaultConnection`; a fine lavoro `Remove-Item` di entrambe.
 
@@ -338,9 +340,90 @@ Dal `V2-007` il tetto di una fascia non può superare i posti della sala: l'ordi
 Il Postgres di Neon **ha un indirizzo pubblico**: si lavora da locale, non serve entrare in una
 sessione remota.
 
+### Il backup di produzione (`V2-018`)
+
+**Quando.** Sempre prima di una migration, di un reset o di un rilascio che tocca il database
+(§3, §4). Con il locale aperto, anche **una volta a settimana**. Il primo vero backup si fa al
+rilascio della F2, prima della migration 9.
+
+**Dove.** Fuori dal progetto, in
+`C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\`, con il
+nome `gestora_AAAA-MM-GG.dump`. Un backup contiene **dati personali** (email e nomi dei clienti,
+indirizzi IP nel registro attività) e le **chiavi che firmano i link email**: mai su Git, mai in
+una cartella condivisa. Si tengono le ultime 4 settimanali più quella fatta prima dell'ultima
+migration; le altre si cancellano. Quanto si conservano va anche scritto nell'informativa privacy
+della F3.
+
+**Cosa serve.** Il `pg_dump` della versione **18**, come il server di Neon. Sul PC ci sono la 17 e
+la 18 e il comando `pg_dump` scritto da solo parte con la 17, che con Neon si rifiuta di lavorare:
+per questo nei comandi c'è il percorso completo. Dal pannello Neon serve la *Connection string*
+**con *Connection pooling* spento**: l'host **senza** `-pooler` nel nome (`pg_dump` con il pooler
+può fallire).
+
+**1. Cartella (solo la prima volta):**
 ```powershell
-pg_dump "postgresql://<utente>:<password>@<host>.neon.tech/<database>?sslmode=require" -f backup_completo.dump -Fc
+New-Item -ItemType Directory -Force "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup"
 ```
+
+**2. Backup.** Nella stringa **non** si scrive la password: `pg_dump` la chiede, così non resta
+nella cronologia del terminale. Al posto di `<host>` e `<database>` i valori del pannello Neon.
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" "postgresql://neondb_owner@<host>.neon.tech/<database>?sslmode=require" -Fc -f "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump"
+```
+`-Fc` è il formato compresso di PostgreSQL: si legge solo con `pg_restore`, ma permette di
+ripristinare anche una tabella sola.
+
+**3. Controllo veloce** che il file sia leggibile e contenga le tabelle (elenco del contenuto,
+non tocca nessun database):
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" --list "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump" | Select-String "TABLE DATA"
+```
+Devono comparire le tabelle di Gestora (`Prenotazioni`, `Utenti`, `DataProtectionKeys`,
+`__EFMigrationsHistory`…) e quelle `qrtz_*` di Quartz.
+
+**Senza riga di comando:** un **branch di Neon** (*Branches* → *Create branch* dal principale, es.
+`backup-2026-10-19`). Va bene come rete di sicurezza prima di una migration, ma **non sostituisce
+il file**: resta sullo stesso fornitore, e se si perde il progetto Neon si perde anche lui.
+
+**La «macchina del tempo» di Neon** (*instant restore*: riportare il database a un momento
+passato) sul piano gratuito copre poche ore: controllare la durata in *Settings* del progetto.
+Serve per un errore appena fatto, non come backup.
+
+### Prova di ripristino (in locale)
+
+Un backup mai ripristinato non si sa se funziona. Si prova **la prima volta** e poi ogni qualche
+mese, su un database **apposta**, `gestora_ripristino`, sul server locale 18 (porta 5432).
+**Mai su `gestora_db`**, che è il database di sviluppo.
+
+1. Database vuoto per la prova:
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -p 5432 -c 'CREATE DATABASE gestora_ripristino;'
+```
+2. Ripristino. `--no-owner --no-acl` perché il proprietario su Neon (`neondb_owner`) in locale non
+   esiste: le tabelle diventano di `postgres`.
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -p 5432 -d gestora_ripristino --no-owner --no-acl "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump"
+```
+   Non deve stampare errori. Un avviso su un'estensione o un ruolo propri di Neon si può ignorare;
+   un errore su una tabella di Gestora no.
+3. Controllo: le migration registrate devono essere le stesse di Neon (l'elenco è nel foglio
+   *BE · Migration*, colonna *Produzione*), e le tabelle devono esserci tutte.
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -p 5432 -d gestora_ripristino -c 'SELECT \"MigrationId\" FROM \"__EFMigrationsHistory\" ORDER BY 1;'
+```
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -p 5432 -d gestora_ripristino -c '\dt'
+```
+4. Si cancella il database di prova:
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -p 5432 -c 'DROP DATABASE gestora_ripristino;'
+```
+
+Per ripristinare **davvero** la produzione si usa lo stesso `pg_restore`, verso Neon e con
+l'App Service fermo, dopo aver svuotato lo schema come in §3 (*Produzione*). È un'operazione da
+decidere insieme, mai da fare di corsa.
+
+### Una tabella sola
 
 Per una singola tabella (più veloce da controllare a occhio):
 ```powershell
@@ -447,6 +530,10 @@ PowerShell 5.1 lo legge con la codifica sbagliata e gli accenti si rompono.
   valore salvato come *Secret* non viene esposto al build del frontend nel modo che Vite si
   aspetta: la build riesce, ma l'app compilata punta a un indirizzo vuoto o sbagliato. Deve anche
   finire con `/api`.
+- **L'indirizzo del backend sta anche in `gestora-frontend/vercel.json`** (dal `V2-018`), nella
+  regola `connect-src` della Content-Security-Policy. Se il backend cambia indirizzo, va cambiato
+  lì oltre che in `VITE_API_URL`: altrimenti il sito si apre, ma il browser blocca ogni chiamata
+  all'API (in console: «Refused to connect ...»).
 - **SCM Basic Auth necessaria per il webhook di distribuzione continua.** Senza, Azure non
   accetta la notifica che arriva da Docker Hub quando c'è una nuova immagine, e il backend resta
   fermo alla versione precedente finché non si riavvia a mano dal pannello.

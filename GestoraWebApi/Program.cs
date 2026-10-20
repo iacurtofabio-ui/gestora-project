@@ -43,6 +43,9 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// V2-018: niente header "Server: Kestrel", che dice a chiunque quale server c'e' dietro.
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 // Configurazione obbligatoria: senza questi valori il servizio non puo funzionare.
 // Si valida subito, prima di registrare qualsiasi servizio, per fallire con un messaggio
 // esplicito invece che piu avanti con errori opachi del driver
@@ -82,6 +85,9 @@ builder.Services.AddDbContext<GestoraContext>(options =>
             maxRetryCount: 5,
             maxRetryDelay: TimeSpan.FromSeconds(10),
             errorCodesToAdd: null)));
+
+// V2-018: chiavi di Data Protection nel database, vedi DataProtectionExtensions.
+builder.Services.AddChiaviDataProtection();
 
 // Serilog
 Log.Logger = new LoggerConfiguration()
@@ -448,6 +454,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwaggerDocumentation();
 }
+
+// V2-018: header di sicurezza su ogni risposta, anche sugli errori e sui 503 della manutenzione.
+// Dopo Swagger (la sua pagina non reggerebbe la Content-Security-Policy), prima di tutto il resto.
+app.UseMiddleware<SicurezzaHeaderMiddleware>();
 
 // FASE 5: una riga per richiesta, invece di dover ricostruire "cosa e' successo" da piu' log
 // sparsi nel controller/service. /health lo chiama Azure di continuo (keepalive): alzato a
