@@ -52,7 +52,8 @@ applicata in locale, non ancora su Neon, e `V2-018-T03`: header di sicurezza nel
 (`SicurezzaHeaderMiddleware`), e `V2-018-T04`: header di sicurezza su Vercel (`vercel.json`, CSP).
 Fatto anche `V2-018-T05`: procedura di backup in `RUNBOOK.md` §6, provata da Fabio con un backup
 di Neon ripristinato su un database locale di prova, e `V2-018-T06`: prova a vista in locale di tutta
-la F2 superata. **Prossimo passo: `V2-018-T07`**, commit su `v2`.
+la F2 superata. Commit `30cfc95` su `v2` con push. **Prossimo passo: `V2-018-T08`**, rilascio: prima
+il backup e la migration 9 su Neon (`RUNBOOK.md` §4 e §6), poi il merge su `main`.
 
 **Prima** (15/10/2026): **chiusa la F0 del piano v3** (`V2-016`). Studio di fattibilità
 e piano, voci in `BACKLOG.md`, foglio *Task v3* nel tracker con la colonna «Ordine» e il «Prossimo
