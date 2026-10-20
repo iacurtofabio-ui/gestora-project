@@ -5,7 +5,7 @@
 
 ---
 
-## 1. Stato — aggiornato al 19/10/2026
+## 1. Stato — aggiornato al 20/10/2026
 
 **Verso la v3.0.0, production ready** (decisione del 15/10/2026): Gestora va resa pronta per
 chiunque, con privacy, sicurezza, modulo dei pareri e vetrina. Piano in sei fasi (F0-F5:
@@ -33,36 +33,39 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 |---|---|
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
-| Database | PostgreSQL su Neon (gratuito permanente): 8 migration EF + tabelle Quartz |
+| Database | PostgreSQL su Neon (gratuito permanente): 9 migration EF + tabelle Quartz |
 | Test | **409** backend (xUnit) + **103** frontend (Vitest), tutti verdi |
-| Modifiche al database | 9: le prime 8 applicate in locale e su Neon; la 9, `ChiaviDataProtection` (`V2-018`, 19/10/2026), è applicata in locale ma **non ancora su Neon** (si fa al rilascio della F2). Elenco nel foglio *BE · Migration* del tracker |
+| Modifiche al database | 9, tutte applicate in locale e su Neon (l'ultima, `ChiaviDataProtection`, `V2-018`, su Neon il 20/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
 | Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
 
-**Ultima cosa fatta** (16/10/2026): **chiusa la F1 del piano v3** (`V2-017`, passaggio a .NET 10),
+**Ultima cosa fatta** (20/10/2026): **chiusa la F2 del piano v3** (`V2-018`, robustezza),
+sviluppata da Claude: chiavi Data Protection nel database (migration 9 `ChiaviDataProtection`),
+header di sicurezza nel backend (`SicurezzaHeaderMiddleware`) e su Vercel (`vercel.json`, CSP),
+procedura di backup in `RUNBOOK.md` §6. Passi precisati il 19/10/2026, prova a vista in locale
+superata, commit `30cfc95` su `v2`. Rilascio di Fabio in fila stretta: primo backup vero di Neon
+(`gestora_2026-10-20.dump`, controllato con `pg_restore --list`), migration 9 dal SQL Editor di
+Neon (script idempotente della sola migration 9), poi merge su `main` `112ef84`. Controllati
+`/health` Healthy, gli header online (backend con HSTS e senza `Server`, frontend con CSP),
+`/api` ancora 503, la chiave salvata in `DataProtectionKeys` su Neon. Poi `V2-018-T09`: monitor
+UptimeRobot (account di Fabio, piano gratuito) su `/health` ogni 30 minuti con avviso via email,
+verde. **Prossimo passo: `V2-024-T01`**, analisi del bug della disponibilità; poi la F3 (`V2-019`).
+
+**Prima** (16/10/2026): **chiusa la F1 del piano v3** (`V2-017`, passaggio a .NET 10),
 sviluppata da Claude: API e test su `net10.0`, pacchetti a 10.x, Swashbuckle 10 (Microsoft.OpenApi
 2.x), MockQueryable 10, `System.Security.Cryptography.Pkcs` fissato a 10.0.13 per gli avvisi di
 sicurezza portati da MimeKit, Dockerfile su `sdk`/`aspnet` 10.0 (Ubuntu 24.04), CI su `10.0.x`.
 Nessuna migration. Commit `f6aeeda` su `v2`, merge su `main` `0fb6c52`; immagine scaricata da
 Azure alle 09:45 UTC, `/health` Healthy e `/api` ancora 503 (manutenzione).
-Il 19/10/2026 la F2 (`V2-018`, robustezza) è stata precisata in passi nel foglio *Task v3*, e il
-difetto aperto di *Fix e Bug* è diventato `V2-024`, da analizzare subito dopo la F2. Fatto anche
-`V2-018-T02`: chiavi Data Protection nel database, con la migration 9 `ChiaviDataProtection`
-applicata in locale, non ancora su Neon, e `V2-018-T03`: header di sicurezza nel backend
-(`SicurezzaHeaderMiddleware`), e `V2-018-T04`: header di sicurezza su Vercel (`vercel.json`, CSP).
-Fatto anche `V2-018-T05`: procedura di backup in `RUNBOOK.md` §6, provata da Fabio con un backup
-di Neon ripristinato su un database locale di prova, e `V2-018-T06`: prova a vista in locale di tutta
-la F2 superata. Commit `30cfc95` su `v2` con push. **Prossimo passo: `V2-018-T08`**, rilascio: prima
-il backup e la migration 9 su Neon (`RUNBOOK.md` §4 e §6), poi il merge su `main`.
 
-**Prima** (15/10/2026): **chiusa la F0 del piano v3** (`V2-016`). Studio di fattibilità
+**Prima ancora** (15/10/2026): **chiusa la F0 del piano v3** (`V2-016`). Studio di fattibilità
 e piano, voci in `BACKLOG.md`, foglio *Task v3* nel tracker con la colonna «Ordine» e il «Prossimo
 passo» in Dashboard. Tag `v2.1.0` su `main` (PR #6, `7823a85`). «Portale in manutenzione»
 sviluppato da Claude (commit `f5cdbe1`, PR #7, `42d7103`): prima le variabili su Azure e Vercel, poi
 il merge; controllati `/health`, il 503 su `/api` e la schermata del sito. Analisi per .NET 10
 fatta (`V2-017-T01`, esito nelle note del task).
 
-**Prima ancora** (14/10/2026): rilascio in produzione, senza tag, di **`V2-003`**
+**Ancora prima** (14/10/2026): rilascio in produzione, senza tag, di **`V2-003`**
 (conferma dell'email alla registrazione), sviluppata da Claude; nessuna migration. Il commit
 `086db11`, intitolato «invio email conferma registrazione», contiene tutta la voce; merge con la
 PR #5 (`915c748`). Prima le variabili `Email__*` su Azure, poi il merge. Provata a vista in locale
@@ -71,14 +74,13 @@ il frontend pubblicato, ma **la registrazione completa non è stata provata**, p
 database ancora senza primo Admin. Resta da fare in produzione il `/setup`. Non c'è un ambiente
 di collaudo (valutato e scartato il 14/10/2026).
 
-**Ancora prima** (13/10/2026): rilascio in produzione, senza tag, di **`V2-013`** (limite di
+**Più indietro** (12-13/10/2026): il 13/10 rilascio in produzione, senza tag, di **`V2-013`** (limite di
 200 caratteri su `NomeCliente`, backend e form, commit `ceb1d68`) e **`V2-014`** (registro
 attività: eliminazione di prenotazioni e utenti nella stessa transazione della traccia, modifica
 di nome/email utente registrata, commit `22c7625`), sviluppati da Claude; nessuna migration. Con
 questi si chiude la code review dell'08/10/2026. In giornata anche **`V2-012`** (spegnere una zona
 con prenotazioni da servire è bloccato), commit `1ff6c57`, merge `b2d0e88`.
-
-**Più indietro** (12/10/2026): rilascio in produzione, senza tag, di **`V2-011`** (limiti di
+Il 12/10 rilascio in produzione, senza tag, di **`V2-011`** (limiti di
 richieste su registrazione e verifica della disponibilità) e **`V2-015`** (pulizia notturna delle
 utenze mai usate), entrambi sviluppati da Claude, commit `73b7a95`, merge con la PR #4
 (`94a9f8e`). Prima la migration 8 su Neon, poi il deploy. Il frontend Vercel è stato pubblicato a

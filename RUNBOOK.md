@@ -226,6 +226,14 @@ processo. Il frontend si verifica aprendo `https://gestora-project-xi.vercel.app
 
 Poi login dal frontend con i tre ruoli.
 
+**Controllo automatico (`V2-018`).** Un monitor **UptimeRobot** (account di Fabio, piano gratuito)
+chiama `/health` ogni 30 minuti e manda un'email se non risponde o risponde con un errore. Dopo un
+rilascio, il monitor deve tornare verde da solo. Il risveglio ogni 30 minuti fa partire anche i job
+notturni entro mezz'ora dall'orario previsto (vedi *Job notturni* in `BACKLOG.md`, *Rischi
+accettati*). Per provare l'avviso senza toccare la produzione: un monitor temporaneo su un
+indirizzo che non esiste (es. `/health-prova-inesistente`, risponde 404), da eliminare dopo
+l'email.
+
 > ⚠️ **Prima di confermare un commit, contare i file inclusi.** `git status` breve raggruppa le
 > cartelle nuove e ne mostra meno di quanti ce ne sono davvero; Visual Studio fa lo stesso, e i
 > file nuovi vanno spuntati a mano. Per l'elenco reale:

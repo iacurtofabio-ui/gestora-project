@@ -1,6 +1,6 @@
 # Gestora v2 — cosa resta da fare
 
-Aggiornato il **19/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
+Aggiornato il **20/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
 non è scritta qui, non è in programma.
 
 Il foglio *Fix e Bug* del tracker resta il registro dettagliato dei difetti, il foglio *Task v3* la
@@ -59,7 +59,7 @@ fasi vanno su `main` una alla volta, dietro la manutenzione.
 |---|---|---|---|---|---|
 | `V2-016` | F0 | richiesta | Chiusura v2 (tag `v2.1.0`) e «Portale in manutenzione» attivabile da variabili, frontend e backend. In produzione dal 15/10/2026 (PR #7) | Claude | fatto |
 | `V2-017` | F1 | miglioramento | Passaggio a .NET 10 LTS: framework, pacchetti, Dockerfile, CI. In produzione dal 16/10/2026 (commit `f6aeeda`, merge `0fb6c52`) | Claude | fatto |
-| `V2-018` | F2 | miglioramento | Robustezza: chiavi Data Protection salvate nel database (migration 9), header di sicurezza nel backend e su Vercel, procedura di backup, UptimeRobot su `/health` ogni 30 minuti. Passi precisati il 19/10/2026; la build nella CI del frontend c'era già | Claude | in corso |
+| `V2-018` | F2 | miglioramento | Robustezza: chiavi Data Protection salvate nel database (migration 9), header di sicurezza nel backend e su Vercel, procedura di backup, UptimeRobot su `/health` ogni 30 minuti. Passi precisati il 19/10/2026; la build nella CI del frontend c'era già. In produzione dal 20/10/2026 (migration 9 su Neon, merge `112ef84`); UptimeRobot attivo dal 20/10/2026 | Claude | fatto |
 | `V2-024` | — | bug | Disponibilità sbagliata con un solo tavolo occupato: una zona con un tavolo da 8 e una prenotazione da 5 mostra 3 posti liberi, ma la prenotazione poi fallisce (foglio *Fix e Bug*). Si analizza subito dopo la F2 | — | da fare |
 | `V2-019` | F3 | richiesta | Privacy e account: informativa e termini, presa visione in registrazione, cancellazione ed export dei propri dati, registro attività a 24 mesi, recupero password, «Il mio account» | Claude | da fare |
 | `V2-022` | F4 | richiesta | Modulo pubblico dei pareri con invio email a Fabio | Claude | da fare |
