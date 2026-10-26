@@ -5,7 +5,7 @@
 
 ---
 
-## 1. Stato — aggiornato al 20/10/2026
+## 1. Stato — aggiornato al 26/10/2026
 
 **Verso la v3.0.0, production ready** (decisione del 15/10/2026): Gestora va resa pronta per
 chiunque, con privacy, sicurezza, modulo dei pareri e vetrina. Piano in sei fasi (F0-F5:
@@ -39,7 +39,18 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 | Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
 | Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
 
-**Ultima cosa fatta** (20/10/2026): **chiusa la F2 del piano v3** (`V2-018`, robustezza),
+**Ultima cosa fatta** (22-26/10/2026): **chiuso il bug `V2-024`** (disponibilità), sviluppato
+da Claude. Con un tavolo da 8 occupato da 5 persone la verifica diceva «restano 3 posti», ma erano
+il resto di quel tavolo: la prenotazione poi falliva. Ora i posti rimasti sono il minore fra tetto
+residuo e gruppo più grande che i tavoli liberi accolgono (`AssegnazioneTavoli.GruppoMassimo`,
+decisione 8 precisata) e nel form dello Staff «Salva» è spento in creazione su una fascia non
+disponibile. Prova a vista di Fabio superata, commit `e9213f2` su `v2`, merge su `main` `7b4ae5f`
+il 26/10; controllati `/health` Healthy e `/api` ancora 503. Nessuna migration. Lo stesso giorno
+**aperta la F3** (`V2-019`, privacy e account, sviluppa Claude): passi `T02`…`T13` nel foglio
+*Task v3*, una migration (10), la pulizia degli account inattivi a 24 mesi entra nella fase.
+**Prossimo passo: `V2-019-T02`**, modello e migration 10.
+
+**Prima** (20/10/2026): **chiusa la F2 del piano v3** (`V2-018`, robustezza),
 sviluppata da Claude: chiavi Data Protection nel database (migration 9 `ChiaviDataProtection`),
 header di sicurezza nel backend (`SicurezzaHeaderMiddleware`) e su Vercel (`vercel.json`, CSP),
 procedura di backup in `RUNBOOK.md` §6. Passi precisati il 19/10/2026, prova a vista in locale
@@ -49,23 +60,23 @@ Neon (script idempotente della sola migration 9), poi merge su `main` `112ef84`.
 `/health` Healthy, gli header online (backend con HSTS e senza `Server`, frontend con CSP),
 `/api` ancora 503, la chiave salvata in `DataProtectionKeys` su Neon. Poi `V2-018-T09`: monitor
 UptimeRobot (account di Fabio, piano gratuito) su `/health` ogni 30 minuti con avviso via email,
-verde. **Prossimo passo: `V2-024-T01`**, analisi del bug della disponibilità; poi la F3 (`V2-019`).
+verde.
 
-**Prima** (16/10/2026): **chiusa la F1 del piano v3** (`V2-017`, passaggio a .NET 10),
+**Prima ancora** (16/10/2026): **chiusa la F1 del piano v3** (`V2-017`, passaggio a .NET 10),
 sviluppata da Claude: API e test su `net10.0`, pacchetti a 10.x, Swashbuckle 10 (Microsoft.OpenApi
 2.x), MockQueryable 10, `System.Security.Cryptography.Pkcs` fissato a 10.0.13 per gli avvisi di
 sicurezza portati da MimeKit, Dockerfile su `sdk`/`aspnet` 10.0 (Ubuntu 24.04), CI su `10.0.x`.
 Nessuna migration. Commit `f6aeeda` su `v2`, merge su `main` `0fb6c52`; immagine scaricata da
 Azure alle 09:45 UTC, `/health` Healthy e `/api` ancora 503 (manutenzione).
 
-**Prima ancora** (15/10/2026): **chiusa la F0 del piano v3** (`V2-016`). Studio di fattibilità
+**Ancora prima** (15/10/2026): **chiusa la F0 del piano v3** (`V2-016`). Studio di fattibilità
 e piano, voci in `BACKLOG.md`, foglio *Task v3* nel tracker con la colonna «Ordine» e il «Prossimo
 passo» in Dashboard. Tag `v2.1.0` su `main` (PR #6, `7823a85`). «Portale in manutenzione»
 sviluppato da Claude (commit `f5cdbe1`, PR #7, `42d7103`): prima le variabili su Azure e Vercel, poi
 il merge; controllati `/health`, il 503 su `/api` e la schermata del sito. Analisi per .NET 10
 fatta (`V2-017-T01`, esito nelle note del task).
 
-**Ancora prima** (14/10/2026): rilascio in produzione, senza tag, di **`V2-003`**
+**Più indietro** (14/10/2026): rilascio in produzione, senza tag, di **`V2-003`**
 (conferma dell'email alla registrazione), sviluppata da Claude; nessuna migration. Il commit
 `086db11`, intitolato «invio email conferma registrazione», contiene tutta la voce; merge con la
 PR #5 (`915c748`). Prima le variabili `Email__*` su Azure, poi il merge. Provata a vista in locale
@@ -74,7 +85,7 @@ il frontend pubblicato, ma **la registrazione completa non è stata provata**, p
 database ancora senza primo Admin. Resta da fare in produzione il `/setup`. Non c'è un ambiente
 di collaudo (valutato e scartato il 14/10/2026).
 
-**Più indietro** (12-13/10/2026): il 13/10 rilascio in produzione, senza tag, di **`V2-013`** (limite di
+**Ancora più indietro** (12-13/10/2026): il 13/10 rilascio in produzione, senza tag, di **`V2-013`** (limite di
 200 caratteri su `NomeCliente`, backend e form, commit `ceb1d68`) e **`V2-014`** (registro
 attività: eliminazione di prenotazioni e utenti nella stessa transazione della traccia, modifica
 di nome/email utente registrata, commit `22c7625`), sviluppati da Claude; nessuna migration. Con

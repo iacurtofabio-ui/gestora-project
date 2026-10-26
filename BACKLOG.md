@@ -1,6 +1,6 @@
 # Gestora v2 — cosa resta da fare
 
-Aggiornato il **20/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
+Aggiornato il **26/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
 non è scritta qui, non è in programma.
 
 Il foglio *Fix e Bug* del tracker resta il registro dettagliato dei difetti, il foglio *Task v3* la
@@ -60,8 +60,8 @@ fasi vanno su `main` una alla volta, dietro la manutenzione.
 | `V2-016` | F0 | richiesta | Chiusura v2 (tag `v2.1.0`) e «Portale in manutenzione» attivabile da variabili, frontend e backend. In produzione dal 15/10/2026 (PR #7) | Claude | fatto |
 | `V2-017` | F1 | miglioramento | Passaggio a .NET 10 LTS: framework, pacchetti, Dockerfile, CI. In produzione dal 16/10/2026 (commit `f6aeeda`, merge `0fb6c52`) | Claude | fatto |
 | `V2-018` | F2 | miglioramento | Robustezza: chiavi Data Protection salvate nel database (migration 9), header di sicurezza nel backend e su Vercel, procedura di backup, UptimeRobot su `/health` ogni 30 minuti. Passi precisati il 19/10/2026; la build nella CI del frontend c'era già. In produzione dal 20/10/2026 (migration 9 su Neon, merge `112ef84`); UptimeRobot attivo dal 20/10/2026 | Claude | fatto |
-| `V2-024` | — | bug | Disponibilità sbagliata con un solo tavolo occupato: una zona con un tavolo da 8 e una prenotazione da 5 mostra 3 posti liberi, ma la prenotazione poi fallisce (foglio *Fix e Bug*). Causa trovata il 22/10/2026: i posti rimasti guardavano solo il tetto della fascia, non i tavoli liberi. Correzione: posti rimasti = il minore fra tetto residuo e gruppo più grande che i tavoli liberi accolgono; nel form dello Staff «Salva» spento se la fascia non è disponibile | Claude | in corso |
-| `V2-019` | F3 | richiesta | Privacy e account: informativa e termini, presa visione in registrazione, cancellazione ed export dei propri dati, registro attività a 24 mesi, recupero password, «Il mio account» | Claude | da fare |
+| `V2-024` | — | bug | Disponibilità sbagliata con un solo tavolo occupato: una zona con un tavolo da 8 e una prenotazione da 5 mostra 3 posti liberi, ma la prenotazione poi fallisce (foglio *Fix e Bug*). Causa: i posti rimasti guardavano solo il tetto della fascia, non i tavoli liberi. Correzione: posti rimasti = il minore fra tetto residuo e gruppo più grande che i tavoli liberi accolgono; nel form dello Staff «Salva» spento in creazione se la fascia non è disponibile. In produzione dal 26/10/2026 (commit `e9213f2`, merge `7b4ae5f`) | Claude | fatto |
+| `V2-019` | F3 | richiesta | Privacy e account: informativa e termini, presa visione in registrazione, cancellazione ed export dei propri dati, registro attività a 24 mesi, recupero password, «Il mio account», account inattivi da 24 mesi eliminati dopo un'email di avviso. Passi precisati il 26/10/2026 (`V2-019-T02`…`T13` nel foglio *Task v3*): una migration (10); un account con prenotazioni da servire non si cancella, quelle passate restano senza utente | Claude | in corso |
 | `V2-022` | F4 | richiesta | Modulo pubblico dei pareri con invio email a Fabio | Claude | da fare |
 | `V2-023` | F5 | studio | Vetrina e rilascio: README in inglese, screenshot, LICENSE, CHANGELOG, anteprime social, `v3.0.0` | Claude | da fare |
 
@@ -109,8 +109,8 @@ Tolte il 12/10/2026, perché chiuse e in produzione (rilascio del 12/10/2026, se
 `V2-001`, `V2-002`, `V2-007`, `V2-008`, `V2-009`, `V2-010` e `V2-006` scartata. La loro storia
 resta nel tracker (fogli *Fix e Bug* e *Task v2*) e nella cronologia Git di questo file.
 
-### Da riprendere insieme: eliminazione delle utenze inattive
-Nota del 12/10/2026, da valutare dentro `V2-019` (F3, privacy). Oggi `V2-015`
+### Eliminazione delle utenze inattive — dentro `V2-019`
+Deciso il 26/10/2026: si fa nella F3, passo `V2-019-T10`. Nota del 12/10/2026, il ragionamento di partenza. Oggi `V2-015`
 elimina solo le utenze *mai usate* (nessun login). Un Cliente entrato almeno una volta resta per
 sempre, anche se non torna da anni. Estendere la pulizia a chi non entra da N mesi (es. 24) è
 la pratica corretta anche per il GDPR, ma va fatto **con un'email di avviso** qualche settimana
