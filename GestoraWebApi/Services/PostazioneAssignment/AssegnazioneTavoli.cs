@@ -34,6 +34,24 @@ namespace GestoraWebApi.Services.PostazioneAssignment
         }
 
         /// <summary>
+        /// V2-024 — il gruppo più grande che i tavoli liberi possono accogliere: per ogni zona la
+        /// capienza dell'unione di tutti i suoi tavoli, poi la zona migliore. Basta l'unione intera
+        /// perché aggiungere un tavolo non abbassa mai la capienza (lo stesso motivo del criterio
+        /// di arresto). Nessun tavolo libero = 0.
+        /// </summary>
+        public static int GruppoMassimo(IEnumerable<Postazione> postazioniLibere)
+        {
+            if (postazioniLibere == null)
+                return 0;
+
+            return postazioniLibere
+                .GroupBy(p => p.ZonaId)
+                .Select(zona => CalcolaCapienza(zona.ToList()))
+                .DefaultIfEmpty(0)
+                .Max();
+        }
+
+        /// <summary>
         /// Trova la migliore assegnazione possibile per i coperti richiesti, valutando insieme
         /// tavoli singoli e unioni di quanti tavoli servono, sempre della stessa zona (V2-007: non c'è
         /// più il limite di 4 tavoli; il gruppo è già limitato dal tetto dei coperti per prenotazione).

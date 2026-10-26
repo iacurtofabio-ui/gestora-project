@@ -100,7 +100,7 @@ ruolo, come array se ne ha più di uno — il frontend normalizza sempre a array
 ## Assegnazione tavoli
 
 `Services/PostazioneAssignment/AssegnazioneTavoli.cs` — motore **puro e statico**, nessuna
-dipendenza da repository o DbContext, testato direttamente (`AssegnazioneTavoliTests`, 19 test).
+dipendenza da repository o DbContext, testato direttamente (`AssegnazioneTavoliTests`, 22 test).
 `PostazioneAssignmentService` legge solo i dati (tavoli attivi, tavoli occupati) e delega al
 motore. **Non rimettere logica di scelta dentro il service**: rendeva l'algoritmo precedente non
 testabile.
@@ -120,8 +120,12 @@ bonus: a soli tavoli da 2 si aggiunge un 2 o più). **Non togliere il criterio**
 tavoli il numero di combinazioni esplode.
 
 `DisponibilitaService` chiama lo stesso motore (`TrovaMigliorCombinazione`) usato
-dall'assegnazione reale — non un algoritmo parallelo. Basa i posti residui sul tetto della fascia
-(`MaxCoperti`, decisione 8), esclude tavoli in zone disattivate. Per ogni fascia scrive il
+dall'assegnazione reale — non un algoritmo parallelo. I posti residui sono il **minore** fra il
+tetto residuo della fascia (`MaxCoperti`, decisione 8) e il gruppo più grande che i tavoli liberi
+accolgono (`AssegnazioneTavoli.GruppoMassimo`, `V2-024`): prima erano solo il tetto, e il resto di un
+tavolo già assegnato sembrava prenotabile. Quando a limitare sono i tavoli il motivo è
+`TavoliInsufficienti`, altrimenti `TettoEsaurito`/`PostiInsufficienti`. Esclude tavoli in zone
+disattivate. Per ogni fascia scrive il
 **motivo** due volte, negli stessi rami: `Messaggio` (testo per lo Staff, lo usa
 `PrenotazioneModal`) e `Motivo` (`Enums/MotivoDisponibilita`: `Libera`, `Terminata`,
 `TettoEsaurito`, `PostiInsufficienti`, `TavoliInsufficienti`, nel JSON come testo) da cui la pagina
@@ -332,7 +336,7 @@ fisso).
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware. **409 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware. **415 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

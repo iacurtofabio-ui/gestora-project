@@ -40,6 +40,32 @@ public class AssegnazioneTavoliTests
         Assert.Equal(8, capienza);
     }
 
+    // --- V2-024: il gruppo più grande che i tavoli liberi accolgono ---
+
+    [Fact]
+    public void GruppoMassimo_NessunTavoloLibero_Zero()
+    {
+        Assert.Equal(0, AssegnazioneTavoli.GruppoMassimo(new List<Postazione>()));
+    }
+
+    [Fact]
+    public void GruppoMassimo_PiuZone_LaZonaMigliore_SenzaUnireZoneDiverse()
+    {
+        // Zona 1: 4 + 6 = 10. Zona 2: 8. Le due zone non si uniscono: 10, non 18.
+        var libere = new List<Postazione> { Tavolo(1, 4, zonaId: 1), Tavolo(2, 6, zonaId: 1), Tavolo(3, 8, zonaId: 2) };
+
+        Assert.Equal(10, AssegnazioneTavoli.GruppoMassimo(libere));
+    }
+
+    [Fact]
+    public void GruppoMassimo_SoliTavoliDa2_ContaIlBonusTestate()
+    {
+        // 2 + 2 + 2 = 6, più i 2 posti sulle testate = 8
+        var libere = new List<Postazione> { Tavolo(1, 2), Tavolo(2, 2), Tavolo(3, 2) };
+
+        Assert.Equal(8, AssegnazioneTavoli.GruppoMassimo(libere));
+    }
+
     // --- Scelta della combinazione: meno posti sprecati ---
 
     [Fact]
