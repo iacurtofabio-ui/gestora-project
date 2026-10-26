@@ -52,11 +52,6 @@ namespace GestoraWebApi.Services.Disponibilita
             {
                 var prenotazioniFascia = prenotazioni.Where(p => p.FasciaOrariaId == f.Id).ToList();
 
-                // Tetto della fascia: coperti già impegnati (non il conteggio delle prenotazioni).
-                var copertiPrenotati = prenotazioniFascia.Sum(p => p.NumeroCoperti);
-                var postiResidui = Math.Max(0, f.MaxCoperti - copertiPrenotati);
-                var tettoSufficiente = postiResidui >= richiesti;
-
                 // Stessa regola di ValidatePrenotazioneAsync: una fascia finita non si prenota
                 // piu'. Prima qui non si guardava l'ora: alle 16:00 il pranzo 12:00-15:00 di oggi
                 // risultava disponibile e la prenotazione poi falliva con 409.
@@ -70,6 +65,18 @@ namespace GestoraWebApi.Services.Disponibilita
                     .ToHashSet();
 
                 var libere = postazioni.Where(p => !occupateIds.Contains(p.Id)).ToList();
+
+                // Tetto della fascia: coperti già impegnati (non il conteggio delle prenotazioni).
+                var copertiPrenotati = prenotazioniFascia.Sum(p => p.NumeroCoperti);
+                var tettoResiduo = Math.Max(0, f.MaxCoperti - copertiPrenotati);
+
+                // V2-024: i posti rimasti devono stare su un tavolo libero. Prima erano solo il tetto
+                // residuo: con un tavolo da 8 occupato da 5 persone risultavano «3 posti», che sono il
+                // resto di quel tavolo e non si possono prenotare.
+                var gruppoMassimo = AssegnazioneTavoli.GruppoMassimo(libere);
+                var postiResidui = Math.Min(tettoResiduo, gruppoMassimo);
+                var limitanoITavoli = gruppoMassimo < tettoResiduo;
+                var tettoSufficiente = tettoResiduo >= richiesti;
 
                 // Stesso motore dell'assegnazione reale.
                 var combinazione = AssegnazioneTavoli.TrovaMigliorCombinazione(libere, richiesti);
@@ -93,6 +100,14 @@ namespace GestoraWebApi.Services.Disponibilita
                 {
                     fasciaDto.Motivo = MotivoDisponibilita.Terminata;
                     fasciaDto.Messaggio = "La fascia oraria è già terminata.";
+                }
+                else if (limitanoITavoli && postiResidui < richiesti)
+                {
+                    // V2-024: a fermare la richiesta sono i tavoli, non il tetto.
+                    fasciaDto.Motivo = MotivoDisponibilita.TavoliInsufficienti;
+                    fasciaDto.Messaggio = postiResidui <= 0
+                        ? "Nessun tavolo libero in questa fascia: sono già tutti assegnati."
+                        : $"I tavoli liberi accolgono al massimo {postiResidui} persone, non sufficienti per le {richiesti} richieste.";
                 }
                 else if (!tettoSufficiente)
                 {

@@ -106,6 +106,11 @@ export default function PrenotazioneModal({ isOpen, onClose, prenotazione, onCre
     (disponibilita.data?.fasce ?? []).map((f) => [f.fasciaOrariaId, f])
   )
   const disponibilitaFasciaScelta = disponibilitaPerFascia.get(fasciaOrariaIdScelta)
+  // V2-024: in creazione una fascia non disponibile non si salva, invece di arrivare al 409 del
+  // backend. In modifica no: la prenotazione stessa occupa i tavoli che la verifica conta come presi,
+  // quindi la fascia risulterebbe piena anche quando la modifica ci sta.
+  const fasciaNonPrenotabile =
+    !inModifica && disponibilitaFasciaScelta?.disponibilePerRichiesta === false
 
   // V2-007: il Cliente prenota da solo fino al limite online; oltre, lo diciamo subito invece di
   // aspettare il rifiuto del backend. Lo Staff (anche al telefono) resta al limite tecnico.
@@ -338,7 +343,7 @@ export default function PrenotazioneModal({ isOpen, onClose, prenotazione, onCre
             <Button type="button" variant="ghost" onClick={onClose}>
               Annulla
             </Button>
-            <Button type="submit" disabled={inCorso || oltreLimiteOnline}>
+            <Button type="submit" disabled={inCorso || oltreLimiteOnline || fasciaNonPrenotabile}>
               {inCorso
                 ? 'Salvataggio…'
                 : inModifica

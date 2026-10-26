@@ -126,7 +126,9 @@ public class DisponibilitaServiceTests
 
         var fascia = Fascia(res, 1);
         Assert.False(fascia.DisponibilePerRichiesta);
-        Assert.True(fascia.PostiResiduiFascia >= 8); // il tetto lascerebbe spazio
+        // V2-024: i posti rimasti sono quelli dei tavoli liberi (2), non il tetto residuo (44).
+        Assert.Equal(2, fascia.PostiResiduiFascia);
+        Assert.Equal(MotivoDisponibilita.TavoliInsufficienti, fascia.Motivo);
         Assert.Contains("tavoli", fascia.Messaggio, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -344,6 +346,41 @@ public class DisponibilitaServiceTests
         var fascia = Fascia(await Verifica(50), 1);
 
         Assert.False(fascia.DisponibilePerRichiesta);
+        Assert.Equal(MotivoDisponibilita.TavoliInsufficienti, fascia.Motivo);
+    }
+
+    // ── V2-024 — i posti rimasti devono stare su un tavolo libero ────────────
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(4)]
+    public async Task UnSoloTavoloGiaAssegnato_NessunPostoRimasto_IlCasoDelBugSegnalato(int richiesti)
+    {
+        // V2-024: tetto 8, un solo tavolo da 8 già assegnato a una prenotazione da 5. Il tetto
+        // lascerebbe 3 coperti, ma sono il resto di quel tavolo: non si possono prenotare.
+        Setup(fasce: new[] { Fascia(1, maxCoperti: 8) }, postazioniAttive: new[] { Tavolo(1, 8) },
+              prenotazioni: new[] { Prenotazione(fasciaId: 1, coperti: 5, (1, 5)) });
+
+        var fascia = Fascia(await Verifica(richiesti), 1);
+
+        Assert.False(fascia.DisponibilePerRichiesta);
+        Assert.Equal(0, fascia.PostiResiduiFascia);
+        Assert.Equal(0, fascia.TotalePostiDisponibili);
+        Assert.Equal(MotivoDisponibilita.TavoliInsufficienti, fascia.Motivo);
+    }
+
+    [Fact]
+    public async Task PostiRimasti_SonoIlMinoreFraTettoETavoliLiberi()
+    {
+        // Tetto residuo 20 - 4 = 16, ma i tavoli liberi accolgono al massimo 6 persone (2 + 4).
+        Setup(fasce: new[] { Fascia(1, maxCoperti: 20) },
+              postazioniAttive: new[] { Tavolo(1, 4), Tavolo(2, 2), Tavolo(3, 4) },
+              prenotazioni: new[] { Prenotazione(fasciaId: 1, coperti: 4, (1, 4)) });
+
+        var fascia = Fascia(await Verifica(8), 1);
+
+        Assert.False(fascia.DisponibilePerRichiesta);
+        Assert.Equal(6, fascia.PostiResiduiFascia);
         Assert.Equal(MotivoDisponibilita.TavoliInsufficienti, fascia.Motivo);
     }
 

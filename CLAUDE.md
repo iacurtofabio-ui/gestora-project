@@ -34,7 +34,7 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
 | Database | PostgreSQL su Neon (gratuito permanente): 9 migration EF + tabelle Quartz |
-| Test | **409** backend (xUnit) + **103** frontend (Vitest), tutti verdi |
+| Test | **415** backend (xUnit) + **105** frontend (Vitest), tutti verdi |
 | Modifiche al database | 9, tutte applicate in locale e su Neon (l'ultima, `ChiaviDataProtection`, `V2-018`, su Neon il 20/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
 | Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
@@ -235,7 +235,8 @@ originale con le motivazioni è in `docs/archivio/`.
    di una fascia attiva **non può superare i posti della sala** (tavoli attivi nelle zone attive,
    somma semplice senza bonus testate): si controlla salvando o attivando una fascia e modificando
    tavoli o zone, e la modifica che porterebbe i posti sotto un tetto è bloccata. Quindi prima i
-   tavoli, poi le fasce (`V2-007`)
+   tavoli, poi le fasce (`V2-007`). I **posti rimasti** mostrati sono il minore fra il tetto
+   residuo e il gruppo più grande che i tavoli liberi accolgono (`V2-024`, 22/10/2026)
 9. **La pagina Postazioni mostra in cima il riepilogo della sala**: è solo informativo
 10. **"Una prenotazione al giorno" per il Cliente è un controllo dell'applicazione**, non un
     vincolo del database
