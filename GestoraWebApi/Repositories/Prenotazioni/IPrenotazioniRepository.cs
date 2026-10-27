@@ -24,5 +24,18 @@ namespace GestoraWebApi.Repositories.Prenotazioni
         Task<List<Prenotazione>> GetPrenotazioniByDataAsync(DateOnly data);
         Task<List<Prenotazione>> GetAllPrenotazioniAsync();
         Task<List<FasciaOraria>> GetFasceOrarieByDayAsync(DayOfWeek giorno);
+
+        /// <summary>
+        /// V2-019: le prenotazioni ancora da servire (Attive o In corso, da <paramref name="daData"/>
+        /// in avanti) legate all'utente. Con la fascia, per il messaggio di blocco.
+        /// </summary>
+        Task<List<Prenotazione>> GetDaServireDiUtenteAsync(string userId, DateOnly daData);
+
+        /// <summary>
+        /// V2-019: stacca dall'utente tutte le sue prenotazioni (UserId a null). Quelle sue, senza
+        /// NomeCliente, prendono <paramref name="nomeAnonimo"/> e perdono le note; quelle prese per
+        /// altri tengono il nome del cliente. Restituisce quante ne ha toccate.
+        /// </summary>
+        Task<int> StaccaDaUtenteAsync(string userId, string nomeAnonimo);
     }
 }

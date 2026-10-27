@@ -21,11 +21,15 @@ const schema = z.object({
   username: usernameSchema,
   email: emailSchema,
   password: passwordSchema,
+  // V2-019: senza presa visione dell'informativa non ci si registra (il backend lo ricontrolla).
+  accettaPrivacy: z.literal(true, {
+    error: 'Per registrarti devi dichiarare di aver letto l’informativa privacy.',
+  }),
 })
 
 type RegisterForm = z.infer<typeof schema>
 
-const CAMPI = ['username', 'email', 'password'] as const
+const CAMPI = ['username', 'email', 'password', 'accettaPrivacy'] as const
 
 export default function RegisterPage() {
   // V2-003: dopo la registrazione non si va al login (senza email confermata non si entra):
@@ -141,6 +145,30 @@ export default function RegisterPage() {
                 <p className="text-nota text-destructive mt-1">{errors.password.message}</p>
               )}
             </div>
+            <div>
+              <label className="text-corpo flex items-start gap-2 text-muted-foreground">
+                <input
+                  id="register-privacy"
+                  type="checkbox"
+                  className="mt-1 size-4 accent-primary"
+                  {...register('accettaPrivacy')}
+                />
+                <span>
+                  Ho letto l’
+                  <Link to="/privacy" target="_blank" className="underline underline-offset-4 hover:text-foreground">
+                    informativa privacy
+                  </Link>{' '}
+                  e accetto i{' '}
+                  <Link to="/termini" target="_blank" className="underline underline-offset-4 hover:text-foreground">
+                    termini di servizio
+                  </Link>
+                  .
+                </span>
+              </label>
+              {errors.accettaPrivacy && (
+                <p className="text-nota text-destructive mt-1">{errors.accettaPrivacy.message}</p>
+              )}
+            </div>
             <ErroreForm messaggio={errors.root?.message} />
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Creazione…' : 'Crea account'}
@@ -158,6 +186,15 @@ export default function RegisterPage() {
       <Link to="/" className="text-nota text-muted-foreground hover:text-foreground">
         ← Torna alla pagina del locale
       </Link>
+      <p className="text-nota text-muted-foreground">
+        <Link to="/privacy" className="hover:text-foreground">
+          Informativa privacy
+        </Link>
+        {' · '}
+        <Link to="/termini" className="hover:text-foreground">
+          Termini di servizio
+        </Link>
+      </p>
     </div>
   )
 }

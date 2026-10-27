@@ -36,9 +36,13 @@ namespace GestoraWebApi.Extensions
                 options.Lockout.AllowedForNewUsers = true;
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+
+                // V2-019: il link per reimpostare la password scade in 2 ore, non in 24.
+                options.Tokens.PasswordResetTokenProvider = RecuperoPasswordTokenProvider<ApplicationUser>.Nome;
             })
             .AddEntityFrameworkStores<GestoraContext>()
             .AddDefaultTokenProviders()
+            .AddTokenProvider<RecuperoPasswordTokenProvider<ApplicationUser>>(RecuperoPasswordTokenProvider<ApplicationUser>.Nome)
             .AddErrorDescriber<IdentityErrorDescriberItaliano>();
 
             //Configuration JWT            

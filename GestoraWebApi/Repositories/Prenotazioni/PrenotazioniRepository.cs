@@ -49,6 +49,42 @@ namespace GestoraWebApi.Repositories.Prenotazioni
             await _context.SaveChangesAsync();
         }
 
+        public async Task<List<Prenotazione>> GetDaServireDiUtenteAsync(string userId, DateOnly daData)
+        {
+            return await _context.Prenotazioni
+                .AsNoTracking()
+                .Where(p => p.UserId == userId
+                         && p.DataPrenotazione >= daData
+                         && (p.Stato == StatoPrenotazione.Attiva || p.Stato == StatoPrenotazione.InCorso))
+                .Include(p => p.FasciaOraria)
+                .OrderBy(p => p.DataPrenotazione)
+                .ThenBy(p => p.FasciaOraria.OrarioInizio)
+                .ThenBy(p => p.Id)
+                .ToListAsync();
+        }
+
+        // Caricate tracciate e salvate con un solo SaveChanges, come AggiornaStatoAsync: si toccano
+        // solo le colonne che cambiano. Niente ExecuteUpdate: il database finto dei test non lo supporta.
+        public async Task<int> StaccaDaUtenteAsync(string userId, string nomeAnonimo)
+        {
+            var prenotazioni = await _context.Prenotazioni
+                .Where(p => p.UserId == userId)
+                .ToListAsync();
+
+            foreach (var p in prenotazioni)
+            {
+                if (string.IsNullOrWhiteSpace(p.NomeCliente))
+                {
+                    p.NomeCliente = nomeAnonimo;
+                    p.Note = null;
+                }
+                p.UserId = null;
+            }
+
+            await _context.SaveChangesAsync();
+            return prenotazioni.Count;
+        }
+
         // REV-022: le entita' vengono caricate tracciate in un'unica query e salvate con un solo
         // SaveChanges. Si evita di proposito UpdateRange su entita' staccate: quel metodo marca
         // Modified l'intero grafo raggiungibile, quindi riscriverebbe anche le fasce orarie

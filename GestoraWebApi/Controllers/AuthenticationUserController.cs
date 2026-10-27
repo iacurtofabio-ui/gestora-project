@@ -3,10 +3,13 @@ using GestoraWebApi.Common;
 using GestoraWebApi.Context;
 using GestoraWebApi.Extensions;
 using GestoraWebApi.Infrastructure.Auth;
+using GestoraWebApi.Infrastructure.Exceptions;
 using GestoraWebApi.Infrastructure.RateLimiting;
 using GestoraWebApi.Services.Auth.DTOs;
 using GestoraWebApi.Services.Email;
 using GestoraWebApi.Services.LogActivity;
+using GestoraWebApi.Services.Privacy;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
@@ -29,6 +32,8 @@ namespace GestoraWebApi.Controllers
         private readonly IClock _clock;
         private readonly IEsecutoreTransazione _transazione;
         private readonly IConfermaEmailService _confermaEmail;
+        private readonly PrivacySettings _privacy;
+        private readonly IRecuperoPasswordService _recuperoPassword;
 
         public AuthenticationUserController(IJwtTokenGenerator tokenGenerator,
                                             ILogger<AuthenticationUserController> logger,
@@ -38,8 +43,12 @@ namespace GestoraWebApi.Controllers
                                             GestoraContext context,
                                             IClock clock,
                                             IEsecutoreTransazione transazione,
-                                            IConfermaEmailService confermaEmail)
+                                            IConfermaEmailService confermaEmail,
+                                            IOptions<PrivacySettings> privacy,
+                                            IRecuperoPasswordService recuperoPassword)
         {
+            _recuperoPassword = recuperoPassword;
+            _privacy = privacy.Value;
             _confermaEmail = confermaEmail;
             _transazione = transazione;
             _clock = clock;
@@ -63,6 +72,16 @@ namespace GestoraWebApi.Controllers
         {
             var creatoDaAdmin = User.IsInRole(Roles.Admin);
 
+            // V2-019: chi si registra da solo deve dichiarare di aver letto l'informativa. Non sta
+            // nel validator perche' dipende da chi chiama: l'Admin che crea lo Staff non la
+            // accetta al posto suo, l'utente la vedra' al primo accesso.
+            if (!creatoDaAdmin && !request.AccettaPrivacy)
+                throw new ValidationException("Registrazione non riuscita: controlla i dati inseriti.",
+                    new Dictionary<string, string[]>
+                    {
+                        ["accettaPrivacy"] = ["Per registrarti devi dichiarare di aver letto l'informativa privacy."]
+                    });
+
             var user = new ApplicationUser
             {
                 UserName = request.Username,
@@ -70,6 +89,8 @@ namespace GestoraWebApi.Controllers
                 EmailConfirmed = creatoDaAdmin,
                 DataCreazione = _clock.UtcNow
             };
+            if (!creatoDaAdmin)
+                PresaVisionePrivacy.Registra(user, _privacy.Versione, _clock.UtcNow);
             var result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
@@ -140,6 +161,31 @@ namespace GestoraWebApi.Controllers
             return Ok("Se l'indirizzo è registrato e non ancora confermato, riceverai una nuova email.");
         }
 
+        /// <summary>
+        /// V2-019 — link per reimpostare la password. Risponde sempre allo stesso modo, esista o no
+        /// l'email: altrimenti si potrebbe scoprire chi è registrato.
+        /// </summary>
+        [EnableRateLimiting(LimitiRichieste.RecuperoPassword)]
+        [HttpPost("password-dimenticata")]
+        public async Task<IActionResult> PasswordDimenticata(PasswordDimenticataDTO request)
+        {
+            await _recuperoPassword.RichiediAsync(request.Email, HttpContext.GetIpAddress());
+            return Ok("Se l'indirizzo è registrato, riceverai un'email con il link per scegliere una nuova password.");
+        }
+
+        /// <summary>V2-019 — nuova password dal link ricevuto per email. Pubblico: chi lo usa non riesce ad accedere.</summary>
+        [EnableRateLimiting(LimitiRichieste.RecuperoPassword)]
+        [HttpPost("reimposta-password")]
+        public async Task<IActionResult> ReimpostaPassword(ReimpostaPasswordDTO request)
+        {
+            var reimpostata = await _recuperoPassword.ReimpostaAsync(request.UserId, request.Token,
+                request.NuovaPassword, HttpContext.GetIpAddress());
+            if (!reimpostata)
+                return BadRequest("Il link non è valido o è scaduto. Chiedine uno nuovo dalla pagina di accesso.");
+
+            return Ok("Password aggiornata. Ora puoi accedere con la nuova password.");
+        }
+
         /// <summary>Login — restituisce il token JWT con i ruoli dell'utente</summary>
         [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
@@ -202,6 +248,8 @@ namespace GestoraWebApi.Controllers
             // emessi restano validi. Se fallisce si avvisa e si entra lo stesso: un campo di
             // manutenzione non deve impedire l'accesso.
             user.UltimoAccesso = _clock.UtcNow;
+            // V2-019: chi rientra non è più inattivo. Se un giorno lo ridiventa, riceverà un avviso nuovo.
+            user.AvvisoInattivitaInviatoIl = null;
             var aggiornamento = await _userManager.UpdateAsync(user);
             if (!aggiornamento.Succeeded)
             {
@@ -255,6 +303,50 @@ namespace GestoraWebApi.Controllers
                 await _userManager.GetSecurityStampAsync(user), inizioSessione.Value);
 
             return Ok(new { Email = user.Email, Token = token });
+        }
+
+        /// <summary>
+        /// V2-019 — se l'utente deve ancora prendere visione dell'informativa in vigore (account
+        /// creati da un Admin, primo Admin, informativa cambiata). Il frontend lo chiede entrando
+        /// nell'area riservata e, se serve, mostra l'informativa prima di tutto il resto.
+        /// </summary>
+        [Authorize]
+        [HttpGet("stato-privacy")]
+        public async Task<IActionResult> StatoPrivacy()
+        {
+            var user = await _userManager.FindByIdAsync(User.GetAuthenticatedUserId());
+            if (user == null)
+                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+
+            return Ok(new
+            {
+                DaAccettare = PresaVisionePrivacy.DaAccettare(user, _privacy.Versione),
+                Versione = _privacy.Versione
+            });
+        }
+
+        /// <summary>V2-019 — presa visione dell'informativa in vigore da parte dell'utente collegato.</summary>
+        [Authorize]
+        [HttpPost("accetta-privacy")]
+        public async Task<IActionResult> AccettaPrivacy()
+        {
+            var user = await _userManager.FindByIdAsync(User.GetAuthenticatedUserId());
+            if (user == null)
+                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+
+            // Gia' accettata: nessuna scrittura e nessuna riga doppia nel registro.
+            if (!PresaVisionePrivacy.DaAccettare(user, _privacy.Versione))
+                return NoContent();
+
+            PresaVisionePrivacy.Registra(user, _privacy.Versione, _clock.UtcNow);
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("Presa visione dell'informativa non salvata.");
+
+            await _logActivityService.LogAsync(user.Id, $"Presa visione informativa privacy {_privacy.Versione}",
+                HttpContext.GetIpAddress());
+
+            return NoContent();
         }
 
         /// <summary>Assegna un ruolo a un utente — solo Admin</summary>

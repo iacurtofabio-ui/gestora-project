@@ -83,4 +83,49 @@ public class PrenotazioniRepositoryTests
 
         Assert.Equal(new long[] { 2, 1 }, risultato.Select(f => f.Id));
     }
+
+    // ── V2-019 — cancellazione dell'account ────────────────────────────────
+
+    [Fact]
+    public async Task StaccaDaUtente_AnonimeLeSueTieneINomiDiAltri_NonToccaGliAltriUtenti()
+    {
+        await using var ctx = NewContext();
+        var sua = Prenotazione(1, StatoPrenotazione.Completata, Lunedi);
+        sua.Note = "Seggiolone per Luca";
+        var perAltri = Prenotazione(2, StatoPrenotazione.Completata, Lunedi);
+        perAltri.NomeCliente = "Giulia Bianchi";
+        var diAltroUtente = Prenotazione(3, StatoPrenotazione.Completata, Lunedi);
+        diAltroUtente.UserId = "altro";
+        ctx.Prenotazioni.AddRange(sua, perAltri, diAltroUtente);
+        await ctx.SaveChangesAsync();
+
+        var toccate = await new PrenotazioniRepository(ctx).StaccaDaUtenteAsync("u", "Cliente eliminato");
+
+        Assert.Equal(2, toccate);
+        var tutte = await ctx.Prenotazioni.AsNoTracking().OrderBy(p => p.Id).ToListAsync();
+        Assert.Null(tutte[0].UserId);
+        Assert.Equal("Cliente eliminato", tutte[0].NomeCliente);
+        Assert.Null(tutte[0].Note);
+        Assert.Null(tutte[1].UserId);
+        Assert.Equal("Giulia Bianchi", tutte[1].NomeCliente);
+        Assert.Equal("altro", tutte[2].UserId);
+    }
+
+    [Fact]
+    public async Task DaServireDiUtente_SoloAttiveOInCorsoDaOggiInAvanti()
+    {
+        await using var ctx = NewContext();
+        ctx.FasciaOrarie.Add(new FasciaOraria { Id = 1, OrarioInizio = new TimeOnly(19, 0), OrarioFine = new TimeOnly(21, 0) });
+        ctx.Prenotazioni.AddRange(
+            Prenotazione(1, StatoPrenotazione.Attiva, Lunedi),
+            Prenotazione(2, StatoPrenotazione.InCorso, Lunedi),
+            Prenotazione(3, StatoPrenotazione.Attiva, Lunedi.AddDays(-1)),
+            Prenotazione(4, StatoPrenotazione.Annullata, Lunedi),
+            Prenotazione(5, StatoPrenotazione.Completata, Lunedi));
+        await ctx.SaveChangesAsync();
+
+        var daServire = await new PrenotazioniRepository(ctx).GetDaServireDiUtenteAsync("u", Lunedi);
+
+        Assert.Equal(new long[] { 1, 2 }, daServire.Select(p => p.Id).OrderBy(id => id));
+    }
 }

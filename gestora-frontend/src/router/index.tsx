@@ -6,6 +6,10 @@ import LandingPage from '@/pages/LandingPage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import ConfermaEmailPage from '@/pages/ConfermaEmailPage'
+import PrivacyPage from '@/pages/PrivacyPage'
+import TerminiPage from '@/pages/TerminiPage'
+import PasswordDimenticataPage from '@/pages/PasswordDimenticataPage'
+import ReimpostaPasswordPage from '@/pages/ReimpostaPasswordPage'
 import AppLayout from '@/layouts/AppLayout'
 import PrenotazionePage from '@/pages/PrenotazionePage'
 import DashboardPage from '@/pages/DashboardPage'
@@ -13,6 +17,7 @@ import ZonePage from '@/pages/ZonePage'
 import PostazionePage from '@/pages/PostazionePage'
 import FasciaOrariaPage from '@/pages/FasciaOrariaPage'
 import AdminUtentiPage from '@/pages/AdminUtentiPage'
+import AccountPage from '@/pages/AccountPage'
 import UnauthorizedPage from '@/pages/UnauthorizedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import SetupPage from '@/pages/SetupPage'
@@ -63,6 +68,22 @@ export const router = createBrowserRouter([
   // V2-003: pagina del link ricevuto per email. Pubblica e fuori da SetupGuard: apre da sola,
   // senza token e senza passare dal controllo del primo avvio.
   { path: '/conferma-email', element: <ConfermaEmailPage />, errorElement },
+  // V2-019: informativa e termini si leggono sempre, anche prima del primo avvio e da chi ha
+  // gia' la sessione aperta: niente SetupGuard, niente RedirectSeAutenticato.
+  { path: '/privacy', element: <PrivacyPage />, errorElement },
+  { path: '/termini', element: <TerminiPage />, errorElement },
+  // V2-019: recupero password. La richiesta sta dietro SetupGuard come il login; la pagina del
+  // link ricevuto per email no, come /conferma-email.
+  {
+    path: '/password-dimenticata',
+    element: (
+      <SetupGuard>
+        <PasswordDimenticataPage />
+      </SetupGuard>
+    ),
+    errorElement,
+  },
+  { path: '/reimposta-password', element: <ReimpostaPasswordPage />, errorElement },
   { path: '/unauthorized', element: <UnauthorizedPage />, errorElement },
 
   {
@@ -86,7 +107,11 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     errorElement,
-    children: [{ path: '/prenotazioni', element: <PrenotazionePage /> }],
+    children: [
+      { path: '/prenotazioni', element: <PrenotazionePage /> },
+      // V2-019: ogni ruolo gestisce il proprio account.
+      { path: '/account', element: <AccountPage /> },
+    ],
   },
   {
     element: (

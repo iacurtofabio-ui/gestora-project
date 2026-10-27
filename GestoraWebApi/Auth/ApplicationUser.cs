@@ -18,5 +18,23 @@ namespace GestoraWebApi.Auth
         /// rinnovo del token non lo aggiorna: serve a sapere se l'utenza è mai stata usata.
         /// </summary>
         public DateTime? UltimoAccesso { get; set; }
+
+        /// <summary>
+        /// V2-019: quando l'utente ha preso visione dell'informativa privacy (UTC), <c>null</c> se
+        /// non l'ha ancora fatto (account creati prima della F3 o da un Admin).
+        /// </summary>
+        public DateTime? PrivacyAccettataIl { get; set; }
+
+        /// <summary>
+        /// V2-019: versione dell'informativa accettata. Se l'informativa cambia, chi ha una versione
+        /// diversa la rivede al primo accesso.
+        /// </summary>
+        public string? PrivacyVersione { get; set; }
+
+        /// <summary>
+        /// V2-019: quando è partita l'email di avviso per inattività (UTC). Si invia una volta sola;
+        /// torna <c>null</c> quando l'utente rientra.
+        /// </summary>
+        public DateTime? AvvisoInattivitaInviatoIl { get; set; }
     }
 }

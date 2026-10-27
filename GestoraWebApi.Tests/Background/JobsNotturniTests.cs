@@ -1,5 +1,7 @@
 using GestoraWebApi.Background;
+using GestoraWebApi.Services.LogActivity;
 using GestoraWebApi.Services.Prenotazioni;
+using GestoraWebApi.Services.Utenti;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -17,12 +19,16 @@ namespace GestoraWebApi.Tests.Background;
 public class JobsNotturniTests
 {
     private readonly Mock<IPrenotazioniService> _prenotazioniService = new();
+    private readonly Mock<IRegistroAttivitaCleanupService> _registroCleanup = new();
+    private readonly Mock<IUtenzeInattiveService> _utenze = new();
     private readonly IServiceProvider _provider;
 
     public JobsNotturniTests()
     {
         var services = new ServiceCollection();
         services.AddScoped(_ => _prenotazioniService.Object);
+        services.AddScoped(_ => _registroCleanup.Object);
+        services.AddScoped(_ => _utenze.Object);
         _provider = services.BuildServiceProvider();
     }
 
@@ -66,5 +72,40 @@ public class JobsNotturniTests
         var job = new PrenotazioniCleanupJob(_provider, new Mock<ILogger<PrenotazioniCleanupJob>>().Object);
 
         await job.Execute(ContestoQuartz()); // non deve lanciare
+    }
+
+    // V2-019 — pulizia del registro attività a 24 mesi.
+
+    [Fact]
+    public async Task RegistroAttivitaCleanupJob_EliminaLeRigheScadute()
+    {
+        var job = new RegistroAttivitaCleanupJob(_provider, new Mock<ILogger<RegistroAttivitaCleanupJob>>().Object);
+
+        await job.Execute(ContestoQuartz());
+
+        _registroCleanup.Verify(s => s.EliminaScaduteAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegistroAttivitaCleanupJob_NonPropagaLEccezione()
+    {
+        _registroCleanup.Setup(s => s.EliminaScaduteAsync()).ThrowsAsync(new Exception("database non raggiungibile"));
+        var job = new RegistroAttivitaCleanupJob(_provider, new Mock<ILogger<RegistroAttivitaCleanupJob>>().Object);
+
+        await job.Execute(ContestoQuartz()); // non deve lanciare
+    }
+
+    // V2-019 — il job delle utenze fa tre passi, e un errore in uno non salta gli altri.
+
+    [Fact]
+    public async Task UtenzeInattiveCleanupJob_UnPassoInErrore_NonFermaGliAltri()
+    {
+        _utenze.Setup(s => s.EliminaUtenzeMaiUsateAsync()).ThrowsAsync(new Exception("database non raggiungibile"));
+        var job = new UtenzeInattiveCleanupJob(_provider, new Mock<ILogger<UtenzeInattiveCleanupJob>>().Object);
+
+        await job.Execute(ContestoQuartz()); // non deve lanciare
+
+        _utenze.Verify(s => s.EliminaInattiviAsync(), Times.Once);
+        _utenze.Verify(s => s.AvvisaInattiviAsync(), Times.Once);
     }
 }

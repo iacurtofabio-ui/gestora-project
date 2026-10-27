@@ -42,6 +42,11 @@ namespace GestoraWebApi.Context
             modelBuilder.Entity<ApplicationUser>()
                 .Property(u => u.DataCreazione)
                 .HasDefaultValueSql("now()");
+
+            // V2-019: la versione dell'informativa è un'etichetta corta (es. «2026-11»).
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(u => u.PrivacyVersione)
+                .HasMaxLength(20);
             modelBuilder.Entity<IdentityRole>().ToTable("Ruoli");
 
             //POSTAZIONI
@@ -133,6 +138,9 @@ namespace GestoraWebApi.Context
                 // Con Restrict il database rifiuta l'eliminazione finche' esistono prenotazioni,
                 // e l'API la traduce in un messaggio esplicito (vedi DeleteUser): l'Admin sa
                 // perche' non puo' procedere, invece di distruggere dati senza accorgersene.
+                // V2-019: il legame e' facoltativo. Chi cancella il proprio account stacca prima
+                // le prenotazioni passate (UserId a null, nome reso anonimo); Restrict resta la
+                // rete di sicurezza per chi elimina un utente senza farlo.
                 entity.HasOne(p => p.User)
                     .WithMany(u => u.Prenotazioni)
                     .HasForeignKey(p => p.UserId)
