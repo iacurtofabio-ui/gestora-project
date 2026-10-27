@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { PlusIcon } from 'lucide-react'
+import { ReportPrenotazioni } from '@/components/ReportPrenotazioni'
 import {
   usePrenotazioni,
   useConfermaPrenotazione,
@@ -240,10 +241,14 @@ export default function PrenotazionePage() {
             )}
           </div>
 
-          <Button size="sm" onClick={apriNuovaPrenotazione} className="self-start sm:self-auto">
-            <PlusIcon />
-            Aggiungi prenotazione
-          </Button>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {/* V2-025: il report contiene i nomi dei clienti, quindi solo per l'Admin. */}
+            {isAdmin && <ReportPrenotazioni />}
+            <Button size="sm" onClick={apriNuovaPrenotazione}>
+              <PlusIcon />
+              Aggiungi prenotazione
+            </Button>
+          </div>
         </div>
 
         {prenotazioni.isLoading ? (

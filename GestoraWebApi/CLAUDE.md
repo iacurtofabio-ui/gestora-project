@@ -73,6 +73,12 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   risponde **sempre allo stesso modo**. Configurazione: sezione `Email` (vedi `RUNBOOK.md` §5);
   fuori da Development l'app non parte senza `Email:Host` e `Email:UrlFrontend`. Se l'invio
   fallisce alla registrazione l'utente resta e la risposta ha `emailInviata: false`.
+- **Report CSV delle prenotazioni** (`V2-025`): `GET /api/Prenotazione/report-csv?da=…&a=…`, **solo Admin**
+  (contiene i nomi dei clienti). Date comprese, al massimo 366 giorni, tutti gli stati; date mancanti o
+  periodo sbagliato danno 400 sul campo. Lettura in `Services/Report/ReportPrenotazioniService`, formato in
+  `CsvPrenotazioni` (puro, testato): separatore `;`, UTF-8 **con BOM** e righe CRLF, perché Excel in italiano
+  lo apra giusto con un doppio clic; le celle che cominciano con `= + - @` prendono un apice davanti, così
+  un nome o una nota non diventano una formula di Excel. Non togliere né il BOM né l'apice.
 - **«Il mio account»** (`V2-019`): `AccountController` (`/api/Account/...`, qualsiasi utente autenticato),
   logica in `Services/Account/AccountService`. L'utente è **sempre quello del token**, mai un id
   passato da fuori. `GET mio-account` dà i dati; `POST cambia-password` vuole la password attuale (con
@@ -373,7 +379,7 @@ fisso).
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi. **456 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV. **470 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

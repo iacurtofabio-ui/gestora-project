@@ -370,6 +370,7 @@ builder.Services.AddScoped<GestoraWebApi.Services.Email.IConfermaEmailService, G
 builder.Services.AddScoped<GestoraWebApi.Services.Email.IRecuperoPasswordService, GestoraWebApi.Services.Email.RecuperoPasswordService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Account.IAccountService, GestoraWebApi.Services.Account.AccountService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Account.IEliminazioneAccountService, GestoraWebApi.Services.Account.EliminazioneAccountService>();
+builder.Services.AddScoped<GestoraWebApi.Services.Report.IReportPrenotazioniService, GestoraWebApi.Services.Report.ReportPrenotazioniService>();
 
 //REPOSITORY
 builder.Services.AddScoped<ILogActivityRepository, LogActivityRepository>();

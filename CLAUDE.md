@@ -34,7 +34,7 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz |
-| Test | **456** backend (xUnit) + **122** frontend (Vitest), tutti verdi |
+| Test | **470** backend (xUnit) + **127** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
 | Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
@@ -50,8 +50,9 @@ L'export dei propri dati per l'utente (`T07`) è stato fatto e poi tolto: al suo
 job con i dati di `GestoraWebApi/Scripts/prove-f3`. Commit `1927a5c` su `v2`. Rilascio il 27/10:
 backup con un branch di Neon (`backup-2026-10-27`), migration 10 dal SQL Editor (script idempotente
 della sola migration 10), merge su `main` `a909ac9`; controllati l'immagine nuova scaricata da Azure,
-`/health` Healthy e `/api` ancora 503. **Prossimo passo: `V2-025-T01`**, report CSV delle
-prenotazioni per l'Admin; poi la F4 (`V2-022`).
+`/health` Healthy e `/api` ancora 503. Il 27/10 anche `V2-025-T01`, report CSV delle prenotazioni
+per l'Admin, sviluppato da Claude, e `T02`, prova a vista di Fabio superata. **Prossimo passo:
+`V2-025-T03`**, commit e rilascio (Fabio, nessuna migration); poi la F4 (`V2-022`).
 
 **Prima** (22-26/10/2026): **chiuso il bug `V2-024`** (disponibilità), sviluppato da Claude. Con un
 tavolo da 8 occupato da 5 persone la verifica diceva «restano 3 posti», ma erano il resto di quel

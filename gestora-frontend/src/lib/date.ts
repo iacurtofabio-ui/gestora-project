@@ -89,6 +89,19 @@ export function dataBreveInItalia(iso: string): string {
   return formattatoreBreve.format(new Date(`${iso}T12:00:00Z`)).replace(/\.$/, '')
 }
 
+/** V2-025 — primo e ultimo giorno del mese di una data YYYY-MM-DD, come YYYY-MM-DD. */
+export function meseDi(iso: string): { primo: string; ultimo: string } {
+  const [anno, mese] = iso.split('-').map(Number)
+  const ultimoGiorno = new Date(Date.UTC(anno, mese, 0)).getUTCDate()
+  const mm = String(mese).padStart(2, '0')
+  return { primo: `${anno}-${mm}-01`, ultimo: `${anno}-${mm}-${String(ultimoGiorno).padStart(2, '0')}` }
+}
+
+/** V2-025 — quanti giorni da `da` ad `a`, estremi compresi (date YYYY-MM-DD). */
+export function giorniCompresi(da: string, a: string): number {
+  return Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${da}T00:00:00Z`)) / 86_400_000) + 1
+}
+
 /**
  * V2-019 — un istante del server (data e ora UTC, es. "2026-10-26T10:34:57Z") scritto in ora
  * italiana: "26 ottobre 2026, 11:34". Per date di eventi (registrazione, ultimo accesso), non per
