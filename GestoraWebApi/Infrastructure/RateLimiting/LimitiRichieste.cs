@@ -23,6 +23,9 @@ namespace GestoraWebApi.Infrastructure.RateLimiting
         /// <summary>V2-019: password-dimenticata e reimposta-password, con i numeri della conferma email.</summary>
         public const string RecuperoPassword = "RecuperoPasswordPolicy";
 
+        /// <summary>V2-022: modulo pubblico dei pareri, con una regola propria (pochi pareri al mese).</summary>
+        public const string Pareri = "PareriPolicy";
+
         /// <summary>
         /// V2-003: conferma email e reinvio del link. Finestra scorrevole per indirizzo, come la
         /// registrazione ma con un contatore proprio. Nessuna esenzione per l'Admin: non usa
@@ -38,6 +41,28 @@ namespace GestoraWebApi.Infrastructure.RateLimiting
                     PermitLimit = limiti.ConfermaEmailPerFinestra,
                     Window = TimeSpan.FromMinutes(limiti.ConfermaEmailFinestraMinuti),
                     SegmentsPerWindow = 6,
+                    QueueLimit = 0
+                });
+        }
+
+        /// <summary>
+        /// V2-022: modulo dei pareri. Finestra scorrevole lunga per indirizzo, di base 2 pareri in
+        /// 30 giorni: nessuno lascia più di un paio di pareri al mese. Avanza di un giorno alla volta.
+        /// <para>
+        /// Il contatore sta in memoria: un riavvio del backend lo azzera. Per un freno allo spam va
+        /// bene così, non serve tenerlo nel database.
+        /// </para>
+        /// </summary>
+        public static RateLimitPartition<string> PartizionePareri(
+            HttpContext httpContext, LimitiRichiesteSettings limiti)
+        {
+            return RateLimitPartition.GetSlidingWindowLimiter(
+                "ip:" + Indirizzo(httpContext),
+                _ => new SlidingWindowRateLimiterOptions
+                {
+                    PermitLimit = limiti.PareriPerFinestra,
+                    Window = TimeSpan.FromDays(limiti.PareriFinestraGiorni),
+                    SegmentsPerWindow = limiti.PareriFinestraGiorni,
                     QueueLimit = 0
                 });
         }

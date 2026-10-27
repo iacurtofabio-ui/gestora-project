@@ -38,5 +38,15 @@ namespace GestoraWebApi.Common
 
         /// <summary>Verifiche al minuto che si recuperano dopo la raffica (ritmo sostenuto).</summary>
         public int DisponibilitaAlMinuto { get; set; }
+
+        /// <summary>
+        /// V2-022: pareri ammessi per indirizzo nella finestra. Chi scrive un parere lo fa una volta,
+        /// raramente due: oltre è quasi certamente spam, e ogni parere è una email nella casella
+        /// di chi gestisce Gestora.
+        /// </summary>
+        public int PareriPerFinestra { get; set; }
+
+        /// <summary>Durata della finestra dei pareri, in giorni.</summary>
+        public int PareriFinestraGiorni { get; set; }
     }
 }

@@ -5,10 +5,10 @@
  * TerminiPage, insieme al valore `Privacy:Versione` del backend: chi ha accettato una versione
  * diversa la rivede al primo accesso.
  */
-export const INFORMATIVA_VERSIONE = '2026-10-26'
+export const INFORMATIVA_VERSIONE = '2026-10-27'
 
 /** Data della versione, come la legge una persona. */
-export const INFORMATIVA_DATA = '26 ottobre 2026'
+export const INFORMATIVA_DATA = '27 ottobre 2026'
 
 /** Chi decide come si trattano i dati (titolare del trattamento). */
 export const TITOLARE = 'Fabio Iacurto'

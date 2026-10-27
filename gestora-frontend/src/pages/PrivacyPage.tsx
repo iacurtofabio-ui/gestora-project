@@ -46,6 +46,11 @@ export default function PrivacyPage() {
             <strong>Verifica della disponibilità senza account</strong>: l’indirizzo IP serve solo a
             limitare le richieste troppo frequenti e non viene salvato.
           </li>
+          <li>
+            <strong>Pareri</strong>: il testo che scrivi nel modulo «Lascia un parere» e, solo se li
+            indichi, il tuo nome e la tua email. L’indirizzo IP serve solo a limitare gli invii
+            troppo frequenti e non viene salvato.
+          </li>
         </ul>
       </section>
 
@@ -62,6 +67,10 @@ export default function PrivacyPage() {
             tentativi di accesso sbagliati. Base giuridica: legittimo interesse a proteggere il
             servizio e chi lo usa (art. 6.1.f GDPR).
           </li>
+          <li>
+            Leggere i pareri e, se hai lasciato l’email, risponderti. Base giuridica: la tua
+            richiesta, quando ci scrivi (art. 6.1.b GDPR).
+          </li>
         </ul>
         <p>Non usiamo i dati per pubblicità, non li vendiamo e non li cediamo ad altri.</p>
       </section>
@@ -75,6 +84,10 @@ export default function PrivacyPage() {
           <li>
             Account senza accessi per 24 mesi: eliminato, dopo un’email di avviso mandata 4
             settimane prima. Basta accedere per tenerlo.
+          </li>
+          <li>
+            Pareri: non vengono salvati in Gestora. Arrivano via email al titolare e restano nella
+            sua casella finché servono per rispondere o per migliorare il servizio.
           </li>
           <li>
             Account che cancelli tu: eliminato subito. Le prenotazioni già passate restano per i

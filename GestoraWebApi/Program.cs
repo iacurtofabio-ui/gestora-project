@@ -159,6 +159,8 @@ builder.Services.AddOptions<LimitiRichiesteSettings>()
         "Configurazione non valida: LimitiRichieste:DisponibilitaRaffica e DisponibilitaAlMinuto devono essere maggiori di zero.")
     .Validate(s => s.ConfermaEmailPerFinestra > 0 && s.ConfermaEmailFinestraMinuti > 0,
         "Configurazione non valida: LimitiRichieste:ConfermaEmailPerFinestra e ConfermaEmailFinestraMinuti devono essere maggiori di zero.")
+    .Validate(s => s.PareriPerFinestra > 0 && s.PareriFinestraGiorni > 0,
+        "Configurazione non valida: LimitiRichieste:PareriPerFinestra e PareriFinestraGiorni devono essere maggiori di zero.")
     .ValidateOnStart();
 
 // V2-016: «portale in manutenzione», spento di default. Nessun controllo: true o false.
@@ -177,6 +179,15 @@ builder.Services.AddOptions<EmailSettings>()
         "Configurazione non valida: Email:Host obbligatorio fuori da Development.")
     .Validate(s => string.IsNullOrWhiteSpace(s.Host) || (s.Porta > 0 && !string.IsNullOrWhiteSpace(s.MittenteEmail)),
         "Configurazione non valida: con Email:Host servono anche Email:Porta e Email:MittenteEmail.")
+    .ValidateOnStart();
+
+// V2-022: fuori da Development i pareri devono avere un destinatario, altrimenti andrebbero persi
+// in silenzio. In locale può mancare: il parere non parte e lo dice il log.
+builder.Services.AddOptions<PareriSettings>()
+    .Bind(builder.Configuration.GetSection(PareriSettings.Sezione))
+    .Validate(s => emailSoloLog
+                   || (!string.IsNullOrWhiteSpace(s.Destinatario) && System.Net.Mail.MailAddress.TryCreate(s.Destinatario, out _)),
+        "Configurazione non valida: Pareri:Destinatario deve essere un indirizzo email valido fuori da Development.")
     .ValidateOnStart();
 
 // Json Serializza TimeSpan come stringa "HH:mm"
@@ -299,6 +310,9 @@ builder.Services.AddRateLimiter(options =>
     // V2-019: stessi numeri della conferma email, contatore proprio (ogni policy ha il suo).
     options.AddPolicy(LimitiRichieste.RecuperoPassword, httpContext =>
         LimitiRichieste.PartizioneConfermaEmail(httpContext, LimitiDaConfigurazione(httpContext)));
+    // V2-022: modulo dei pareri, stessi numeri e contatore proprio.
+    options.AddPolicy(LimitiRichieste.Pareri, httpContext =>
+        LimitiRichieste.PartizionePareri(httpContext, LimitiDaConfigurazione(httpContext)));
     options.AddPolicy(LimitiRichieste.Disponibilita, httpContext =>
         LimitiRichieste.PartizioneDisponibilita(httpContext, LimitiDaConfigurazione(httpContext)));
 
@@ -371,6 +385,7 @@ builder.Services.AddScoped<GestoraWebApi.Services.Email.IRecuperoPasswordService
 builder.Services.AddScoped<GestoraWebApi.Services.Account.IAccountService, GestoraWebApi.Services.Account.AccountService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Account.IEliminazioneAccountService, GestoraWebApi.Services.Account.EliminazioneAccountService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Report.IReportPrenotazioniService, GestoraWebApi.Services.Report.ReportPrenotazioniService>();
+builder.Services.AddScoped<GestoraWebApi.Services.Pareri.IPareriService, GestoraWebApi.Services.Pareri.PareriService>();
 
 //REPOSITORY
 builder.Services.AddScoped<ILogActivityRepository, LogActivityRepository>();

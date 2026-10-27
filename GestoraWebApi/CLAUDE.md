@@ -73,6 +73,15 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   risponde **sempre allo stesso modo**. Configurazione: sezione `Email` (vedi `RUNBOOK.md` §5);
   fuori da Development l'app non parte senza `Email:Host` e `Email:UrlFrontend`. Se l'invio
   fallisce alla registrazione l'utente resta e la risposta ha `emailInviata: false`.
+- **Modulo dei pareri** (`V2-022`): `POST /api/Pareri/invia`, pubblico, con la regola `LimitiRichieste.Pareri`
+  (`PartizionePareri`: **2 pareri in 30 giorni per indirizzo**, `LimitiRichieste:PareriPerFinestra` e
+  `PareriFinestraGiorni`; contatore in memoria, un riavvio lo azzera). Messaggio obbligatorio (max 2000), nome ed email
+  facoltativi (`ParereDTOValidator`). `Services/Pareri/PareriService` manda il parere via `IInvioEmail` a
+  `Pareri:Destinatario` (su Azure `Pareri__Destinatario`, **obbligatorio fuori da Development**, controllato
+  all'avvio) e **non salva nulla nel database**. Il campo `SitoWeb` è una trappola: il modulo lo nasconde,
+  se arriva compilato il parere si scarta con la stessa risposta di un invio riuscito. Nei log solo
+  l'esito e l'IP, mai testo o email di chi scrive. Se l'invio fallisce l'errore arriva al chiamante
+  (500): niente «grazie» per un parere perso.
 - **Report CSV delle prenotazioni** (`V2-025`): `GET /api/Prenotazione/report-csv?da=…&a=…`, **solo Admin**
   (contiene i nomi dei clienti). Date comprese, al massimo 366 giorni, tutti gli stati; date mancanti o
   periodo sbagliato danno 400 sul campo. Lettura in `Services/Report/ReportPrenotazioniService`, formato in
@@ -379,7 +388,7 @@ fisso).
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV. **470 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri. **484 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

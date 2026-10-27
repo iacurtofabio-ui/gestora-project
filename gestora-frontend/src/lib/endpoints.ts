@@ -5,6 +5,10 @@
  * (vedi GestoraWebApi/CLAUDE.md, sezione "Endpoint - riferimento reale").
  */
 export const Endpoints = {
+  // V2-022: modulo pubblico dei pareri, senza account.
+  pareri: {
+    invia: '/Pareri/invia',
+  },
   // V2-019: «Il mio account», sempre sull'utente del token.
   account: {
     mioAccount: '/Account/mio-account',

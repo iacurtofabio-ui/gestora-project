@@ -8,6 +8,7 @@ import RegisterPage from '@/pages/RegisterPage'
 import ConfermaEmailPage from '@/pages/ConfermaEmailPage'
 import PrivacyPage from '@/pages/PrivacyPage'
 import TerminiPage from '@/pages/TerminiPage'
+import PareriPage from '@/pages/PareriPage'
 import PasswordDimenticataPage from '@/pages/PasswordDimenticataPage'
 import ReimpostaPasswordPage from '@/pages/ReimpostaPasswordPage'
 import AppLayout from '@/layouts/AppLayout'
@@ -72,6 +73,8 @@ export const router = createBrowserRouter([
   // gia' la sessione aperta: niente SetupGuard, niente RedirectSeAutenticato.
   { path: '/privacy', element: <PrivacyPage />, errorElement },
   { path: '/termini', element: <TerminiPage />, errorElement },
+  // V2-022: il modulo dei pareri, aperto a tutti come informativa e termini.
+  { path: '/pareri', element: <PareriPage />, errorElement },
   // V2-019: recupero password. La richiesta sta dietro SetupGuard come il login; la pagina del
   // link ricevuto per email no, come /conferma-email.
   {
