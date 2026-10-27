@@ -67,6 +67,8 @@ export const Endpoints = {
     checkDisponibilita: '/Prenotazione/check-disponibilita',
     // V2-002: pubblico, nessuna autenticazione richiesta.
     limitiPrenotazione: '/Prenotazione/limiti-prenotazione',
+    // V2-025: solo Admin, date YYYY-MM-DD comprese.
+    reportCsv: (da: string, a: string) => `/Prenotazione/report-csv?da=${da}&a=${a}`,
     crea: '/Prenotazione/crea-prenotazione',
     update: (id: number) => `/Prenotazione/update-prenotazione?id=${id}`,
     conferma: (id: number) => `/Prenotazione/conferma-prenotazione?id=${id}`,

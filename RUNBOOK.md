@@ -206,6 +206,13 @@ pone. Prima e dopo, controllo su `"__EFMigrationsHistory"`.
   container (qualche minuto in più della sola build)
 - il **tag non fa niente**: è solo un segnalibro sulla storia
 
+**Come vedere che Azure ha preso l'immagine nuova** (aggiunto il 27/10/2026). Su Docker Hub il tag
+`latest` di `fabioiacurto/gestora-api` mostra **«Last pushed»**, l'ora in cui l'Action l'ha pubblicata.
+Nel portale Azure, App Service → **Centro distribuzione** (*Deployment Center*) → scheda **Log**: ci
+deve essere una distribuzione riuscita **dopo** quell'ora. In alternativa **Flusso di log** (*Log
+stream*): durante l'aggiornamento compaiono «Pulling image…» e l'avvio del container. Le ore possono
+essere in UTC. Se dopo una decina di minuti non succede niente, il webhook non è partito.
+
 Quindi: se la modifica è solo di backend, Vercel ricostruisce ma non cambia niente (il frontend
 resta lo stesso), e viceversa. La catena backend ha due passaggi automatici in serie (Actions poi
 webhook Azure): se `/health` non risponde subito dopo il push, aspettare qualche minuto prima di

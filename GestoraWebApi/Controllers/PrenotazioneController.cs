@@ -4,6 +4,7 @@ using GestoraWebApi.Services.Disponibilita;
 using GestoraWebApi.Services.Prenotazioni;
 using GestoraWebApi.Services.Prenotazioni.DTOs;
 using GestoraWebApi.Services.PrenotazioniPostazioni;
+using GestoraWebApi.Services.Report;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -19,18 +20,33 @@ namespace GestoraWebApi.Controllers
     {
         private readonly IPrenotazioniService _prenotazioniService;
         private readonly IDisponibilitaService _disponibilitaService;
+        private readonly IReportPrenotazioniService _report;
         private readonly PrenotazioniSettings _impostazioni;
         private readonly ILogger<PrenotazioneController> _logger;
 
         public PrenotazioneController(IPrenotazioniService prenotazioneService,
                                       IDisponibilitaService disponibilitaService,
+                                      IReportPrenotazioniService report,
                                       IOptions<PrenotazioniSettings> impostazioni,
                                       ILogger<PrenotazioneController> logger)
         {
             _prenotazioniService = prenotazioneService;
             _disponibilitaService = disponibilitaService;
+            _report = report;
             _impostazioni = impostazioni.Value;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// V2-025 — report CSV delle prenotazioni da <paramref name="da"/> ad <paramref name="a"/>
+        /// (date comprese, al massimo un anno), tutti gli stati. Solo Admin: contiene i nomi dei clienti.
+        /// </summary>
+        [Authorize(Roles = Roles.Admin)]
+        [HttpGet("report-csv")]
+        public async Task<IActionResult> ReportCsv([FromQuery] DateOnly da, [FromQuery] DateOnly a)
+        {
+            var csv = await _report.CsvAsync(da, a);
+            return File(csv, "text/csv; charset=utf-8", $"prenotazioni_{da:yyyy-MM-dd}_{a:yyyy-MM-dd}.csv");
         }
 
         /// <summary>Crea una nuova prenotazione per l'utente autenticato. Assegna automaticamente le postazioni disponibili.</summary>
