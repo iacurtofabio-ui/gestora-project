@@ -152,6 +152,9 @@ export default function LandingPage() {
             <Link to="/termini" className="hover:text-foreground">
               Termini di servizio
             </Link>
+            <Link to="/pareri" className="hover:text-foreground">
+              Lascia un parere
+            </Link>
             <Link to="/login" className="underline underline-offset-4 hover:text-foreground">
               Area riservata
             </Link>

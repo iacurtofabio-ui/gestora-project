@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { LogOutIcon, MenuIcon, UserIcon, XIcon } from 'lucide-react'
+import { LogOutIcon, MenuIcon, MessageSquareIcon, UserIcon, XIcon } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { onSessionExpired } from '@/lib/session'
 import { Button } from '@/components/ui/button'
@@ -170,6 +170,10 @@ export default function AppLayout() {
                 <DropdownMenuItem onSelect={() => navigate('/account')}>
                   <UserIcon />
                   Il mio account
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => navigate('/pareri')}>
+                  <MessageSquareIcon />
+                  Lascia un parere
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={handleLogout} variant="destructive">

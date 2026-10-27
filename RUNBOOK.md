@@ -212,6 +212,17 @@ Nel portale Azure, App Service → **Centro distribuzione** (*Deployment Center*
 deve essere una distribuzione riuscita **dopo** quell'ora. In alternativa **Flusso di log** (*Log
 stream*): durante l'aggiornamento compaiono «Pulling image…» e l'avvio del container. Le ore possono
 essere in UTC. Se dopo una decina di minuti non succede niente, il webhook non è partito.
+Nel log, `Image … is pulled from registry` vuol dire che Azure ha scaricato davvero un'immagine
+nuova; se manca, ha riusato quella che aveva già.
+
+**Comportamento noto: il primo avvio dopo un rilascio fallisce** (visto il 27/10/2026 due volte su
+due). Nel log: `Site startup probe failed after 0.x seconds`, `ContainerStartupFailure`, poi
+`Site: gestora-api stopped` (si spegne anche il contenitore vecchio). Azure controlla l'app dopo meno
+di un secondo, prima che .NET abbia finito di partire. **Non è un errore del codice**: alla prima
+richiesta successiva (anche `/health` o il controllo di UptimeRobot) il sito riparte con
+l'immagine nuova, il controllo riesce in circa 11 secondi e il log dice `Site started`. Quindi,
+dopo un rilascio: aprire `/health` e aspettare `Healthy`. Fino a quella richiesta il backend resta
+spento: con la produzione aperta al pubblico va tenuto presente (da rivedere prima della `v3.0.0`).
 
 Quindi: se la modifica è solo di backend, Vercel ricostruisce ma non cambia niente (il frontend
 resta lo stesso), e viceversa. La catena backend ha due passaggi automatici in serie (Actions poi
@@ -291,6 +302,12 @@ Staff) nascono già confermati.
 | `Email__MittenteEmail` | indirizzo che compare come mittente | quello verificato su Brevo |
 | `Email__MittenteNome` | nome del mittente | `Gestora` (già il predefinito) |
 | `Email__UrlFrontend` | indirizzo del frontend, per il link nell'email | `https://gestora-project-xi.vercel.app` (senza `/` finale) |
+| `Pareri__Destinatario` | a chi arrivano i pareri del modulo `/pareri` (`V2-022`) | l'indirizzo di chi gestisce Gestora |
+
+> ⚠️ **`Pareri__Destinatario` va creata su Azure prima del rilascio della F4**: fuori da Development
+> l'app controlla all'avvio che sia un indirizzo email valido e, se manca, **non parte**. In locale
+> può mancare (il parere non parte e lo dice il log); per riceverlo davvero:
+> `dotnet user-secrets set "Pareri:Destinatario" "indirizzo"` da dentro `GestoraWebApi\`.
 
 > ⚠️ **Prima le variabili, poi il deploy.** All'avvio l'app controlla che `Email__UrlFrontend` sia un
 > indirizzo completo e, fuori da Development, che `Email__Host` ci sia (con `Email__Porta` e
@@ -315,6 +332,11 @@ serve: al momento non ci sono utenti.
 Il link vale 24 ore. Chi non lo trova può farselo rimandare dalla pagina di accesso. Limite di
 richieste su conferma e reinvio: `LimitiRichieste:ConfermaEmailPerFinestra` (10) ogni
 `ConfermaEmailFinestraMinuti` (60) per indirizzo.
+
+Il modulo dei pareri (`V2-022`) accetta `LimitiRichieste:PareriPerFinestra` (2) pareri ogni
+`PareriFinestraGiorni` (30) per indirizzo; oltre risponde 429 e la pagina dice che i pareri del mese
+sono già arrivati. Il contatore sta in memoria: un riavvio del backend lo azzera. Per provarlo in
+locale basta mandare tre pareri di fila; per ricominciare, riavviare il backend.
 
 ### Il portale in manutenzione (`V2-016`)
 

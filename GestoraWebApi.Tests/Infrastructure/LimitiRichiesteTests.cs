@@ -26,7 +26,9 @@ namespace GestoraWebApi.Tests.Infrastructure
             ConfermaEmailPerFinestra = 2,
             ConfermaEmailFinestraMinuti = 60,
             DisponibilitaRaffica = 5,
-            DisponibilitaAlMinuto = 30
+            DisponibilitaAlMinuto = 30,
+            PareriPerFinestra = 2,
+            PareriFinestraGiorni = 30
         };
 
         private static HttpContext Richiesta(string ip = "79.30.166.123", string? userId = null, params string[] ruoli)
@@ -108,6 +110,17 @@ namespace GestoraWebApi.Tests.Infrastructure
             Assert.Equal(2, RichiesteAccettate(partizione, 10));
         }
 
+        // --- Pareri (V2-022) ---
+
+        [Fact]
+        public void Pareri_SiFermaADuePerIndirizzo()
+        {
+            var partizione = LimitiRichieste.PartizionePareri(Richiesta(), Limiti);
+
+            Assert.Equal("ip:79.30.166.123", partizione.PartitionKey);
+            Assert.Equal(2, RichiesteAccettate(partizione, 10));
+        }
+
         // --- Verifica della disponibilità ---
 
         [Fact]
@@ -147,6 +160,7 @@ namespace GestoraWebApi.Tests.Infrastructure
         [InlineData(typeof(AuthenticationUserController), nameof(AuthenticationUserController.ConfermaEmail), LimitiRichieste.ConfermaEmail)]
         [InlineData(typeof(AuthenticationUserController), nameof(AuthenticationUserController.ReinviaConferma), LimitiRichieste.ConfermaEmail)]
         [InlineData(typeof(PrenotazioneController), nameof(PrenotazioneController.CheckDisponibilita), LimitiRichieste.Disponibilita)]
+        [InlineData(typeof(PareriController), nameof(PareriController.Invia), LimitiRichieste.Pareri)]
         public void Endpoint_HaLaSuaRegola(Type controller, string metodo, string regola)
         {
             var attributo = controller.GetMethod(metodo)!.GetCustomAttribute<EnableRateLimitingAttribute>();
