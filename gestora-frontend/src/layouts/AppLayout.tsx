@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { LogOutIcon, MenuIcon, XIcon } from 'lucide-react'
+import { LogOutIcon, MenuIcon, UserIcon, XIcon } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { onSessionExpired } from '@/lib/session'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { PresaVisionePrivacy } from '@/components/PresaVisionePrivacy'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -166,6 +167,11 @@ export default function AppLayout() {
                   <p className="text-nota truncate text-muted-foreground">{user?.roles.join(', ')}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => navigate('/account')}>
+                  <UserIcon />
+                  Il mio account
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={handleLogout} variant="destructive">
                   <LogOutIcon />
                   Esci
@@ -201,7 +207,9 @@ export default function AppLayout() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 md:px-6 md:py-6">
-        <Outlet />
+        <PresaVisionePrivacy>
+          <Outlet />
+        </PresaVisionePrivacy>
       </main>
     </div>
   )

@@ -26,5 +26,21 @@ namespace GestoraWebApi.Repositories.LogActivity
             await _dbSet.AddAsync(log);
             await _context.SaveChangesAsync();
         }
+
+        // A blocchi, come la pulizia delle utenze: la prima esecuzione dopo anni potrebbe trovare
+        // molte righe, e un solo SaveChanges enorme terrebbe la memoria e il database occupati.
+        // Niente ExecuteDelete: il database finto dei test non lo supporta.
+        public async Task<int> EliminaPrimaDiAsync(DateTime limiteUtc, int massimo)
+        {
+            var vecchie = await _dbSet
+                .Where(l => l.Timestamp < limiteUtc)
+                .OrderBy(l => l.Timestamp).ThenBy(l => l.Id)
+                .Take(massimo)
+                .ToListAsync();
+
+            _dbSet.RemoveRange(vecchie);
+            await _context.SaveChangesAsync();
+            return vecchie.Count;
+        }
     }
 }

@@ -20,6 +20,9 @@ namespace GestoraWebApi.Infrastructure.RateLimiting
         public const string Disponibilita = "DisponibilitaPolicy";
         public const string ConfermaEmail = "ConfermaEmailPolicy";
 
+        /// <summary>V2-019: password-dimenticata e reimposta-password, con i numeri della conferma email.</summary>
+        public const string RecuperoPassword = "RecuperoPasswordPolicy";
+
         /// <summary>
         /// V2-003: conferma email e reinvio del link. Finestra scorrevole per indirizzo, come la
         /// registrazione ma con un contatore proprio. Nessuna esenzione per l'Admin: non usa

@@ -130,6 +130,24 @@ builder.Services.AddOptions<UtenzeSettings>()
     .Bind(builder.Configuration.GetSection(UtenzeSettings.Sezione))
     .Validate(s => s.GiorniUtenzaMaiUsata > 0,
         "Configurazione non valida: Utenze:GiorniUtenzaMaiUsata deve essere maggiore di zero.")
+    // V2-019: senza mesi o settimane l'avviso e l'eliminazione degli inattivi partirebbero subito.
+    .Validate(s => s.MesiInattivita > 0 && s.SettimaneAvviso > 0,
+        "Configurazione non valida: Utenze:MesiInattivita e Utenze:SettimaneAvviso devono essere maggiori di zero.")
+    .ValidateOnStart();
+
+// V2-019: senza versione nessuno potrebbe prendere visione dell'informativa; oltre 20 caratteri
+// non entrerebbe nella colonna Utenti.PrivacyVersione.
+builder.Services.AddOptions<PrivacySettings>()
+    .Bind(builder.Configuration.GetSection(PrivacySettings.Sezione))
+    .Validate(s => !string.IsNullOrWhiteSpace(s.Versione) && s.Versione.Length <= 20,
+        "Configurazione non valida: Privacy:Versione è obbligatoria e non può superare 20 caratteri.")
+    .ValidateOnStart();
+
+// V2-019: con zero mesi il job notturno svuoterebbe l'intero registro attività.
+builder.Services.AddOptions<RegistroAttivitaSettings>()
+    .Bind(builder.Configuration.GetSection(RegistroAttivitaSettings.Sezione))
+    .Validate(s => s.MesiConservazione > 0,
+        "Configurazione non valida: RegistroAttivita:MesiConservazione deve essere maggiore di zero.")
     .ValidateOnStart();
 
 // V2-011: con un limite a zero (variabile dimenticata) l'endpoint risponderebbe 429 a tutti.
@@ -199,10 +217,12 @@ builder.Services.AddQuartz(q =>
     var jobKey = new JobKey("PrenotazioniJob");
     var jobCleanupKey = new JobKey("PrenotazioniCleanupJob");
     var jobUtenzeKey = new JobKey("UtenzeInattiveCleanupJob");
+    var jobRegistroKey = new JobKey("RegistroAttivitaCleanupJob");
 
     q.AddJob<PrenotazioniJob>(opts => opts.WithIdentity(jobKey).StoreDurably());
     q.AddJob<PrenotazioniCleanupJob>(opts => opts.WithIdentity(jobCleanupKey).StoreDurably());
     q.AddJob<UtenzeInattiveCleanupJob>(opts => opts.WithIdentity(jobUtenzeKey).StoreDurably());
+    q.AddJob<RegistroAttivitaCleanupJob>(opts => opts.WithIdentity(jobRegistroKey).StoreDurably());
 
     q.AddTrigger(opts => opts
         .ForJob(jobKey)
@@ -221,6 +241,12 @@ builder.Services.AddQuartz(q =>
         .ForJob(jobUtenzeKey)
         .WithIdentity("UtenzeInattiveCleanupJob-trigger")
         .WithCronSchedule("0 0 3 * * ?", x => x.InTimeZone(GestoraWebApi.Common.SystemClock.RomeTimeZone)));
+
+    // V2-019: dopo la pulizia delle utenze, che scrive nel registro una riga per ogni eliminata.
+    q.AddTrigger(opts => opts
+        .ForJob(jobRegistroKey)
+        .WithIdentity("RegistroAttivitaCleanupJob-trigger")
+        .WithCronSchedule("0 30 3 * * ?", x => x.InTimeZone(GestoraWebApi.Common.SystemClock.RomeTimeZone)));
 });
 
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
@@ -269,6 +295,9 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(LimitiRichieste.Registrazione, httpContext =>
         LimitiRichieste.PartizioneRegistrazione(httpContext, LimitiDaConfigurazione(httpContext)));
     options.AddPolicy(LimitiRichieste.ConfermaEmail, httpContext =>
+        LimitiRichieste.PartizioneConfermaEmail(httpContext, LimitiDaConfigurazione(httpContext)));
+    // V2-019: stessi numeri della conferma email, contatore proprio (ogni policy ha il suo).
+    options.AddPolicy(LimitiRichieste.RecuperoPassword, httpContext =>
         LimitiRichieste.PartizioneConfermaEmail(httpContext, LimitiDaConfigurazione(httpContext)));
     options.AddPolicy(LimitiRichieste.Disponibilita, httpContext =>
         LimitiRichieste.PartizioneDisponibilita(httpContext, LimitiDaConfigurazione(httpContext)));
@@ -338,6 +367,9 @@ else
     builder.Services.AddScoped<GestoraWebApi.Services.Email.IInvioEmail, GestoraWebApi.Services.Email.InvioEmailSmtp>();
 
 builder.Services.AddScoped<GestoraWebApi.Services.Email.IConfermaEmailService, GestoraWebApi.Services.Email.ConfermaEmailService>();
+builder.Services.AddScoped<GestoraWebApi.Services.Email.IRecuperoPasswordService, GestoraWebApi.Services.Email.RecuperoPasswordService>();
+builder.Services.AddScoped<GestoraWebApi.Services.Account.IAccountService, GestoraWebApi.Services.Account.AccountService>();
+builder.Services.AddScoped<GestoraWebApi.Services.Account.IEliminazioneAccountService, GestoraWebApi.Services.Account.EliminazioneAccountService>();
 
 //REPOSITORY
 builder.Services.AddScoped<ILogActivityRepository, LogActivityRepository>();
@@ -359,6 +391,7 @@ builder.Services.AddScoped<IZonaService, ZonaService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Sala.ICoerenzaSalaService, GestoraWebApi.Services.Sala.CoerenzaSalaService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IUtenzeInattiveService, UtenzeInattiveService>();
+builder.Services.AddScoped<GestoraWebApi.Services.LogActivity.IRegistroAttivitaCleanupService, GestoraWebApi.Services.LogActivity.RegistroAttivitaCleanupService>();
 
 var app = builder.Build();
 

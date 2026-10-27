@@ -35,6 +35,8 @@ export const SENZA_TOKEN: readonly string[] = [
   Endpoints.auth.login,
   Endpoints.auth.confermaEmail,
   Endpoints.auth.reinviaConferma,
+  Endpoints.auth.passwordDimenticata,
+  Endpoints.auth.reimpostaPassword,
 ]
 
 apiClient.interceptors.request.use((config) => {

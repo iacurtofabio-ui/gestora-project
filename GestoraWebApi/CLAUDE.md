@@ -73,6 +73,28 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   risponde **sempre allo stesso modo**. Configurazione: sezione `Email` (vedi `RUNBOOK.md` §5);
   fuori da Development l'app non parte senza `Email:Host` e `Email:UrlFrontend`. Se l'invio
   fallisce alla registrazione l'utente resta e la risposta ha `emailInviata: false`.
+- **«Il mio account»** (`V2-019`): `AccountController` (`/api/Account/...`, qualsiasi utente autenticato),
+  logica in `Services/Account/AccountService`. L'utente è **sempre quello del token**, mai un id
+  passato da fuori. `GET mio-account` dà i dati; `POST cambia-password` vuole la password attuale (con
+  lo stesso blocco dopo 5 tentativi del login, errori sul campo `passwordAttuale`), cambia il security
+  stamp e restituisce un **token nuovo** con lo stesso inizio di sessione: le altre sessioni si chiudono,
+  questa continua. `POST cancella-account` (con la password, stesso blocco) elimina l'account: 409 se ci sono prenotazioni da servire (`GetDaServireDiUtenteAsync`; il messaggio parla al cliente: «prenotazioni in programma», non usa `DescrizioneImpegni`) o se è l'ultimo Admin. L'eliminazione vera sta in `Services/Account/EliminazioneAccountService`, comune alla pulizia degli inattivi: in una transazione stacca tutte le prenotazioni (`StaccaDaUtenteAsync`: `UserId` a null, le sue prendono «Cliente eliminato» e perdono le note, quelle prese per altri tengono il nome del cliente), scrive la traccia e cancella l'utente. Le righe del registro restano con un id che non corrisponde più a nessuno. L'export dei propri dati per l'utente è stato tolto il 26/10/2026 (troppo tecnico): le richieste arrivano per email.
+- **Recupero password** (`V2-019`): `password-dimenticata` e `reimposta-password`, pubblici, con la regola
+  `LimitiRichieste.RecuperoPassword` (numeri della conferma email, contatore proprio). Logica in
+  `Services/Email/RecuperoPasswordService`, stesso schema della conferma (token in Base64 adatto agli URL,
+  link a `/reimposta-password`). La richiesta risponde **sempre allo stesso modo**. Il token scade in
+  **2 ore** (`Infrastructure/Auth/RecuperoPasswordTokenProvider`, registrato come
+  `PasswordResetTokenProvider`; la conferma email resta a 24 ore). Il reset cambia il security stamp
+  (le sessioni aperte si chiudono), conferma l'email e toglie il blocco per tentativi sbagliati. Le
+  regole della password stanno in `Validators/RegolePassword` (`PasswordSicura()`), usate da
+  registrazione, reset da Admin e recupero.
+- **Presa visione dell'informativa privacy** (`V2-019`): `register` pubblico vuole `accettaPrivacy: true`
+  (altrimenti 400 sul campo `accettaPrivacy`) e salva su `Utenti` data e versione accettata. Il controllo
+  sta nel controller e non nel validator perché dipende da chi chiama: se registra un **Admin** non
+  serve, l'utente la vedrà al primo accesso. `GET stato-privacy` e `POST accetta-privacy` (utente
+  autenticato) dicono se va (ri)vista e la registrano; la regola è in `Services/Privacy/PresaVisionePrivacy`.
+  Versione in vigore: `Privacy:Versione` (su Azure `Privacy__Versione`), controllata all'avvio; va
+  cambiata **insieme** a `INFORMATIVA_VERSIONE` del frontend (`lib/privacy.ts`).
 - **Portale in manutenzione** (`V2-016`): con `Manutenzione:Attiva = true` (su Azure
   `Manutenzione__Attiva`) `Infrastructure/Middleware/ManutenzioneMiddleware` risponde **503** a ogni
   `/api` con il corpo `ErrorDetails`; `/health` resta libero. Sta dopo `UseCors` (il browser deve
@@ -221,6 +243,21 @@ fisso).
   **Chi crea un utente valorizza `DataCreazione`, chi fa entrare un utente `UltimoAccesso`**
   (oggi: `register`, `Setup/admin`, `login`). Se `DataCreazione` manca, il default del database
   (`now()`) evita che l'utenza risulti vecchia di duemila anni ed eliminata subito.
+- **Account inattivi** (`V2-019`): lo stesso `UtenzeInattiveCleanupJob` fa tre passi, ognuno con il suo
+  `try` (un errore non salta gli altri): utenze mai usate, poi eliminazione degli inattivi, poi avvisi.
+  Solo Clienti, mai Staff o Admin (`UtentiRepository.SoloClienti`). A chi non entra da
+  `Utenze:MesiInattivita` (24) mesi meno `Utenze:SettimaneAvviso` (4) settimane parte una sola email
+  con la data dell'eliminazione (mai prima di 4 settimane da oggi), e si segna
+  `AvvisoInattivitaInviatoIl`; se l'email non parte non si segna e si riprova la notte dopo. Si elimina
+  chi è fermo da 24 mesi **e** è stato avvisato da almeno 4 settimane, con `EliminazioneAccountService`;
+  chi ha prenotazioni in programma resta. **Il login rimette `AvvisoInattivitaInviatoIl` a null**: chi
+  rientra non è più inattivo. Numeri scritti anche nell'informativa privacy.
+- **Registro attività a 24 mesi** (`V2-019`): `RegistroAttivitaCleanupJob` (ogni notte alle 3:30, dopo la
+  pulizia delle utenze) elimina le righe di `LogActivities` più vecchie di
+  `RegistroAttivita:MesiConservazione` mesi (24, controllato all'avvio), a blocchi di 1000
+  (`RegistroAttivitaCleanupService`, `LogActivityRepository.EliminaPrimaDiAsync`). Il riepilogo va nel log
+  dell'applicazione, non nel registro. Il periodo è scritto anche nell'informativa privacy: cambiandolo
+  si cambia anche il testo.
 - **Storico utenti**: FK `Prenotazioni → Utenti` è `Restrict`, non `Cascade`. Un utente con
   prenotazioni **non si elimina** (409): lo storico regge i conteggi.
 - **Quartz e repliche**: scheduler **non** in cluster mode. Con una sola istanza va bene; prima di
@@ -336,7 +373,7 @@ fisso).
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware. **415 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi. **456 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

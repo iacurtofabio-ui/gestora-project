@@ -110,6 +110,13 @@ export default function LoginPage() {
               {errors.password && (
                 <p className="text-nota text-destructive mt-1">{errors.password.message}</p>
               )}
+              {/* V2-019: recupero autonomo, senza passare dall'Admin. */}
+              <Link
+                to="/password-dimenticata"
+                className="text-nota mt-1 inline-block text-muted-foreground hover:text-foreground"
+              >
+                Password dimenticata?
+              </Link>
             </div>
             <ErroreForm messaggio={errors.root?.message} />
             {daConfermare && (

@@ -5,11 +5,21 @@
  * (vedi GestoraWebApi/CLAUDE.md, sezione "Endpoint - riferimento reale").
  */
 export const Endpoints = {
+  // V2-019: «Il mio account», sempre sull'utente del token.
+  account: {
+    mioAccount: '/Account/mio-account',
+    cambiaPassword: '/Account/cambia-password',
+    cancellaAccount: '/Account/cancella-account',
+  },
   auth: {
     login: '/AuthenticationUser/login',
     register: '/AuthenticationUser/register',
     confermaEmail: '/AuthenticationUser/conferma-email',
     reinviaConferma: '/AuthenticationUser/reinvia-conferma',
+    passwordDimenticata: '/AuthenticationUser/password-dimenticata',
+    reimpostaPassword: '/AuthenticationUser/reimposta-password',
+    statoPrivacy: '/AuthenticationUser/stato-privacy',
+    accettaPrivacy: '/AuthenticationUser/accetta-privacy',
     rinnovaToken: '/AuthenticationUser/rinnova-token',
     getUsers: '/AuthenticationUser/get-users',
     updateUser: (id: string) => `/AuthenticationUser/update-user/${id}`,

@@ -15,7 +15,7 @@ logout + redirect su 401).
 
 ```
 npm run lint      # zero errori
-npm test          # 105 test, Vitest + Testing Library
+npm test          # 122 test, Vitest + Testing Library
 npm run build     # controlla i tipi — npm test NON lo fa (vedi sezione Test)
 ```
 Se hai toccato un componente/pagina visibile e non hai verificato a mano nel browser, dillo
@@ -131,6 +131,17 @@ Una fascia non prenotabile mostra **un solo stato**, scelto da `motivo` (`V2-007
 concluso», «Pieno», «Restano N posti», «Pieno per N persone». Non mostrare `messaggio` (è scritto
 per lo Staff) e non rimettere i posti residui accanto a «Pieno»: era il bug.
 
+**Informativa e termini** (`V2-019`): `/privacy` e `/termini` (`PrivacyPage`, `TerminiPage`, guscio
+`components/legale/PaginaLegale`) sono pubbliche e fuori da `SetupGuard`, come `/conferma-email`.
+Titolare, email di contatto e versione stanno solo in `lib/privacy.ts`. I testi descrivono cosa
+Gestora fa davvero (dati salvati, tempi di conservazione dei job, fornitori, regole delle
+prenotazioni): se cambia una di queste cose, si cambia anche il testo e si alza
+`INFORMATIVA_VERSIONE`, insieme alla versione del backend (`Privacy:Versione`). La registrazione
+ha la casella obbligatoria «Ho letto l'informativa» (`accettaPrivacy`). Nell'area riservata
+`components/PresaVisionePrivacy`, dentro `AppLayout` al posto della pagina, mostra l'informativa a chi
+non l'ha ancora accettata (account creati da un Admin, primo Admin, informativa cambiata); se la
+verifica fallisce lascia passare, per non chiudere fuori lo Staff durante il servizio.
+
 Due condizioni attive sulla radice: `SetupGuard` (senza un Admin si va a `/setup`) e
 `RedirectSeAutenticato` (chi ha sessione aperta va alla sua pagina, non alla vetrina).
 
@@ -232,7 +243,7 @@ l'etichetta è `sr-only` (design con segnaposto).
 
 ## Test
 
-**105 test** con Vitest + Testing Library: impronta dello script del tema nella CSP di `vercel.json` (2, `V2-018`), portale in manutenzione (1 + 4 della lettura di `VITE_MANUTENZIONE`, `V2-016`), quali richieste portano il token (4, `V2-003`), lettura difensiva del token (10), rinnovo del token in
+**122 test** con Vitest + Testing Library: impronta dello script del tema nella CSP di `vercel.json` (2, `V2-018`), portale in manutenzione (1 + 4 della lettura di `VITE_MANUTENZIONE`, `V2-016`), quali richieste portano il token (4, `V2-003`), lettura difensiva del token (10), rinnovo del token in
 `AuthProvider` (5) e suo momento (3), helper errori (5 + 5 del login + 2 del login con email non
 confermata, `V2-003` + 1 per campo + 2 del limite di richieste), pagina di conferma dell'email (3), messaggio della pagina pubblica sul 429 (1), regole di nome utente e campi numerici (8),
 `ProtectedRoute` su accesso e ruoli (6), scelta fascia oraria in `PrenotazioneModal` (5), limite
@@ -240,7 +251,7 @@ online dei coperti in `PrenotazioneModal` (3), lunghezza del nome cliente in `Pr
 pubblica `VerificaDisponibilita` (6), azioni
 di riga e tastiera in `AzioniPrenotazione` (16, incluso l'eliminazione solo sulle annullate e niente Conferma/Annulla fuori tempo), scelta della
 pagina di casa per ruolo (5), navigazione per giorno della Dashboard (1), filtri nell'URL di
-`PrenotazionePage` e salto al giorno dopo una creazione (3).
+`PrenotazionePage` e salto al giorno dopo una creazione (3), informativa e termini (2, `V2-019`), presa visione nell'area riservata (3) e casella in registrazione (2), recupero password (4), «Il mio account» (3), cancellazione dell'account (3, `V2-019`).
 
 > ⚠️ `npm test` **non controlla i tipi**. Serve anche `npm run build`.
 >
@@ -268,6 +279,21 @@ sempre `Cliente`. `useCreateUser` compone tre chiamate esistenti: `register` →
 recuperare l'id, `register` non lo restituisce) → `assign-role`/`remove-role` se l'Admin ha
 scelto un ruolo diverso da Cliente. Pagina pubblica `/register` chiama `register` direttamente,
 senza passare da `useCreateUser`.
+
+### «Il mio account» (`V2-019`)
+
+`/account` (`AccountPage`, tutti i ruoli) si apre dal menu utente nella barra. Mostra i dati
+dell'account, il cambio password e «Cancella l'account» (`CancellaAccountCard`: conferma con la password in una finestra, poi logout e ritorno alla pagina del locale). Dopo il cambio il server manda un token nuovo e `useCambiaPassword`
+lo salva con `login(token)`: senza, la sessione in uso finirebbe insieme alle altre. Le date-ora del
+server si scrivono con `istanteInItalia` (`lib/date.ts`).
+
+### Recupero password (`V2-019`)
+
+Dal login «Password dimenticata?» porta a `/password-dimenticata` (dietro `SetupGuard`, come il
+login), che mostra sempre lo stesso messaggio, esista o no l'email. Il link dell'email porta a
+`/reimposta-password?userId=…&token=…` (pubblica, fuori da `SetupGuard`, come `/conferma-email`).
+Entrambi gli endpoint sono in `SENZA_TOKEN`. Gli errori di Identity sulla nuova password arrivano sul
+campo `password` e la pagina li mostra sotto «Nuova password».
 
 ### Conferma dell'email (`V2-003`)
 

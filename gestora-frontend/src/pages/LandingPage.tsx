@@ -145,9 +145,17 @@ export default function LandingPage() {
       <footer className="border-t">
         <div className="text-corpo mx-auto flex max-w-5xl flex-col justify-between gap-4 px-4 py-8 text-muted-foreground sm:flex-row sm:items-center">
           <Logo className="text-foreground" />
-          <Link to="/login" className="underline underline-offset-4 hover:text-foreground">
-            Area riservata
-          </Link>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link to="/privacy" className="hover:text-foreground">
+              Informativa privacy
+            </Link>
+            <Link to="/termini" className="hover:text-foreground">
+              Termini di servizio
+            </Link>
+            <Link to="/login" className="underline underline-offset-4 hover:text-foreground">
+              Area riservata
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

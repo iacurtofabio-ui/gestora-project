@@ -17,12 +17,7 @@ namespace GestoraWebApi.Validators
                 .NotEmpty().WithMessage("L'email è obbligatoria.")
                 .EmailAddress().WithMessage("Inserire un indirizzo email valido.");
 
-            RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("La password è obbligatoria.")
-                .MinimumLength(8).WithMessage("La password deve avere almeno 8 caratteri.")
-                .Matches("[A-Z]").WithMessage("La password deve contenere almeno una lettera maiuscola.")
-                .Matches("[0-9]").WithMessage("La password deve contenere almeno un numero.")
-                .Matches("[^a-zA-Z0-9]").WithMessage("La password deve contenere almeno un carattere speciale.");
+            RuleFor(x => x.Password).PasswordSicura();
         }
     }
 }

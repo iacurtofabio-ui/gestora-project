@@ -9,5 +9,17 @@ namespace GestoraWebApi.Common
         /// prenotazioni viene eliminato dalla pulizia notturna. Controllato all'avvio (&gt; 0).
         /// </summary>
         public int GiorniUtenzaMaiUsata { get; set; }
+
+        /// <summary>
+        /// V2-019: dopo quanti mesi senza accessi un Cliente viene eliminato (24, come dice
+        /// l'informativa privacy). Controllato all'avvio (&gt; 0).
+        /// </summary>
+        public int MesiInattivita { get; set; }
+
+        /// <summary>
+        /// V2-019: quante settimane prima dell'eliminazione parte l'email di avviso, ed è anche il
+        /// tempo minimo fra avviso ed eliminazione. Controllato all'avvio (&gt; 0).
+        /// </summary>
+        public int SettimaneAvviso { get; set; }
     }
 }

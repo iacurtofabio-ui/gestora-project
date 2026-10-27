@@ -131,4 +131,52 @@ public class UtentiRepositoryTests
 
         Assert.Equal(new[] { "a", "b" }, await Candidati(ctx, massimo: 2));
     }
+
+    // ── V2-019 — account inattivi ──────────────────────────────────────────
+
+    private static async Task<string[]> DaAvvisare(GestoraContext ctx)
+    {
+        await ctx.SaveChangesAsync();
+        return (await new UtentiRepository(ctx).GetInattiviDaAvvisareAsync(Soglia, 500)).Select(u => u.Id).OrderBy(id => id).ToArray();
+    }
+
+    private static async Task<string[]> DaEliminare(GestoraContext ctx, DateTime avvisatiPrimaDi)
+    {
+        await ctx.SaveChangesAsync();
+        return (await new UtentiRepository(ctx).GetInattiviDaEliminareAsync(Soglia, avvisatiPrimaDi, 500)).Select(u => u.Id).OrderBy(id => id).ToArray();
+    }
+
+    [Fact]
+    public async Task DaAvvisare_SoloClientiEntratiPrimaDellaSoglia_NonAncoraAvvisati()
+    {
+        using var ctx = NewContext();
+        Utente(ctx, "fermo", Prima.AddYears(-1), Prima, "r-cliente");
+        Utente(ctx, "attivo", Prima.AddYears(-1), Dopo, "r-cliente");
+        Utente(ctx, "mai-entrato", Prima.AddYears(-1), null, "r-cliente");
+        Utente(ctx, "staff-fermo", Prima.AddYears(-1), Prima, "r-staff");
+        Utente(ctx, "gia-avvisato", Prima.AddYears(-1), Prima, "r-cliente");
+        await ctx.SaveChangesAsync();
+        (await ctx.Users.FindAsync("gia-avvisato"))!.AvvisoInattivitaInviatoIl = Prima;
+
+        Assert.Equal(new[] { "fermo" }, await DaAvvisare(ctx));
+    }
+
+    [Fact]
+    public async Task DaEliminare_SoloAvvisatiPrimaDelLimite_EFermiPrimaDellaSoglia()
+    {
+        using var ctx = NewContext();
+        Utente(ctx, "avvisato-da-tempo", Prima.AddYears(-1), Prima, "r-cliente");
+        Utente(ctx, "avvisato-ieri", Prima.AddYears(-1), Prima, "r-cliente");
+        Utente(ctx, "mai-avvisato", Prima.AddYears(-1), Prima, "r-cliente");
+        Utente(ctx, "rientrato", Prima.AddYears(-1), Dopo, "r-cliente");
+        Utente(ctx, "admin-fermo", Prima.AddYears(-1), Prima, "r-admin");
+        await ctx.SaveChangesAsync();
+        var limiteAvviso = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+        (await ctx.Users.FindAsync("avvisato-da-tempo"))!.AvvisoInattivitaInviatoIl = limiteAvviso.AddDays(-10);
+        (await ctx.Users.FindAsync("avvisato-ieri"))!.AvvisoInattivitaInviatoIl = limiteAvviso.AddDays(1);
+        (await ctx.Users.FindAsync("rientrato"))!.AvvisoInattivitaInviatoIl = limiteAvviso.AddDays(-10);
+        (await ctx.Users.FindAsync("admin-fermo"))!.AvvisoInattivitaInviatoIl = limiteAvviso.AddDays(-10);
+
+        Assert.Equal(new[] { "avvisato-da-tempo" }, await DaEliminare(ctx, limiteAvviso));
+    }
 }

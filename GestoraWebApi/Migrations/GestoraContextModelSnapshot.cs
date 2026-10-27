@@ -30,6 +30,9 @@ namespace GestoraWebApi.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("AvvisoInattivitaInviatoIl")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -68,6 +71,13 @@ namespace GestoraWebApi.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("PrivacyAccettataIl")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PrivacyVersione")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -229,7 +239,6 @@ namespace GestoraWebApi.Migrations
                         .HasColumnName("Stato");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id")
@@ -470,8 +479,7 @@ namespace GestoraWebApi.Migrations
                     b.HasOne("GestoraWebApi.Auth.ApplicationUser", "User")
                         .WithMany("Prenotazioni")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("FasciaOraria");
 

@@ -25,13 +25,30 @@ namespace GestoraWebApi.Background
             {
                 using var scope = _serviceProvider.CreateScope();
                 var service = scope.ServiceProvider.GetRequiredService<IUtenzeInattiveService>();
-                await service.EliminaUtenzeMaiUsateAsync();
+
+                // V2-019: tre passi indipendenti. Un errore in uno non deve saltare gli altri, ed
+                // eliminare prima di avvisare evita di mandare un avviso a chi sta per sparire.
+                await Esegui(service.EliminaUtenzeMaiUsateAsync, "la pulizia delle utenze mai usate");
+                await Esegui(service.EliminaInattiviAsync, "l'eliminazione degli account inattivi");
+                await Esegui(service.AvvisaInattiviAsync, "l'avviso agli account inattivi");
 
                 _logger.LogInformation("UtenzeInattiveCleanupJob completed at {Time}", DateTime.UtcNow);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante la pulizia automatica delle utenze mai usate.");
+                _logger.LogError(ex, "Errore durante la pulizia automatica delle utenze.");
+            }
+        }
+
+        private async Task Esegui(Func<Task<int>> passo, string descrizione)
+        {
+            try
+            {
+                await passo();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante {Passo}.", descrizione);
             }
         }
     }

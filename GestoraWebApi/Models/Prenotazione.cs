@@ -15,9 +15,10 @@ namespace GestoraWebApi.Models
         // a UserId di chi l'ha creata, questo campo serve solo a identificare chi si presenta.
         public string? NomeCliente { get; set; }
 
-        
-        public string UserId { get; set; }
-        public virtual ApplicationUser User { get; set; }
+        // V2-019: null quando l'account che l'ha creata è stato cancellato. La prenotazione resta
+        // (conteggi del locale veri) con NomeCliente «Cliente eliminato», senza dati personali.
+        public string? UserId { get; set; }
+        public virtual ApplicationUser? User { get; set; }
 
         public long FasciaOrariaId { get; set; }
         public virtual FasciaOraria FasciaOraria { get; set; }

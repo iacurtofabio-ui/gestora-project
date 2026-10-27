@@ -89,6 +89,24 @@ export function dataBreveInItalia(iso: string): string {
   return formattatoreBreve.format(new Date(`${iso}T12:00:00Z`)).replace(/\.$/, '')
 }
 
+/**
+ * V2-019 — un istante del server (data e ora UTC, es. "2026-10-26T10:34:57Z") scritto in ora
+ * italiana: "26 ottobre 2026, 11:34". Per date di eventi (registrazione, ultimo accesso), non per
+ * le date di calendario delle prenotazioni.
+ */
+const formattatoreIstante = new Intl.DateTimeFormat('it-IT', {
+  timeZone: FUSO_ITALIA,
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+export function istanteInItalia(isoUtc: string): string {
+  return formattatoreIstante.format(new Date(isoUtc))
+}
+
 /** Come CheckDisponibilitaDTOValidator.GiorniMassimiInAvanti nel backend. */
 export const GIORNI_MASSIMI_IN_AVANTI = 365
 
