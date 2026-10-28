@@ -27,12 +27,12 @@ Servono due terminali, più PostgreSQL già attivo sulla macchina.
 
 **Backend** (porta 5099, fissata in `Properties/launchSettings.json`):
 ```powershell
-cd "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora\GestoraWebApi"; dotnet run
+cd GestoraWebApi; dotnet run
 ```
 
 **Frontend** (porta 5173):
 ```powershell
-cd "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora\gestora-frontend"; npm run dev
+cd gestora-frontend; npm run dev
 ```
 
 Il frontend locale legge `.env.local`, che deve contenere `VITE_API_URL=http://localhost:5099/api`.
@@ -273,7 +273,7 @@ connection string che compare (formato `postgresql://...`), poi:
 Le credenziali di sviluppo vivono **fuori dal repository**, in un file sulla macchina:
 
 ```
-C:\Users\Carlo Taranto\AppData\Roaming\Microsoft\UserSecrets\aa9f6e84-1217-48e1-9783-b07f152f7874\secrets.json
+%APPDATA%\Microsoft\UserSecrets\aa9f6e84-1217-48e1-9783-b07f152f7874\secrets.json
 ```
 
 Comandi, da eseguire dentro `GestoraWebApi\`:

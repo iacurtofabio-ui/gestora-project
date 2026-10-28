@@ -1,0 +1,16 @@
+# Gestora: si lasciano indicizzare solo le pagine pubbliche (deciso il 28/10/2026, V2-023).
+# L'area riservata richiede comunque l'accesso: questo file evita solo che i motori di ricerca
+# ci perdano tempo e mostrino pagine di login nei risultati.
+# "Allow: /$" vuol dire la sola home: senza il $ varrebbe per tutto il sito.
+User-agent: *
+Allow: /$
+Allow: /pareri$
+Allow: /privacy$
+Allow: /termini$
+# Script, stili e caratteri della build: senza, Google non riesce a disegnare le pagine (sono React).
+Allow: /assets/
+Allow: /og-image.png
+Allow: /favicon.svg
+Disallow: /
+
+Sitemap: https://gestora-project-xi.vercel.app/sitemap.xml

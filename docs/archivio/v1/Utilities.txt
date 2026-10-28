@@ -7,7 +7,7 @@ per lo stato lavori vedi CLAUDE.md e TrackAttività_Gestora.xlsx.
 --- User Secrets backend ---
 
 
-Percorso del file secrets.json su questa macchina: C:\Users\Carlo Taranto\AppData\Roaming\Microsoft\UserSecrets\aa9f6e84-1217-48e1-9783-b07f152f7874\secrets.json
+Percorso del file secrets.json su questa macchina: %APPDATA%\Microsoft\UserSecrets\aa9f6e84-1217-48e1-9783-b07f152f7874\secrets.json
 
 Per leggere/modificare i valori (da eseguire dentro la cartella GestoraWebApi\):
   dotnet user-secrets list

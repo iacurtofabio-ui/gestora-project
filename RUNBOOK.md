@@ -23,16 +23,17 @@ Tutti i comandi sono per **PowerShell su Windows**, su una riga sola.
 
 ## 1. Avviare il progetto in locale
 
-Servono due terminali, più PostgreSQL già attivo sulla macchina.
+Servono due terminali, più PostgreSQL già attivo sulla macchina. I comandi partono dalla
+cartella del progetto (`Gestora`).
 
 **Backend** (porta 5099, fissata in `Properties/launchSettings.json`):
 ```powershell
-cd "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora\GestoraWebApi"; dotnet run
+cd GestoraWebApi; dotnet run
 ```
 
 **Frontend** (porta 5173):
 ```powershell
-cd "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora\gestora-frontend"; npm run dev
+cd gestora-frontend; npm run dev
 ```
 
 Il frontend locale legge `.env.local`, che deve contenere `VITE_API_URL=http://localhost:5099/api`.
@@ -54,7 +55,7 @@ cd "...\gestora-frontend"; npm run build
 cd "...\gestora-frontend"; npm run lint
 ```
 
-Valori attesi oggi: **409** test backend, **103** frontend, build senza errori, lint senza errori.
+Valori attesi oggi: **484** test backend, **132** frontend, build senza errori, lint senza errori.
 I test del backend stanno in `GestoraWebApi.Tests/`, accanto all'API: si lanciano dalla radice
 attraverso `Gestora.sln`.
 
@@ -384,7 +385,7 @@ sessione remota.
 rilascio della F2, prima della migration 9.
 
 **Dove.** Fuori dal progetto, in
-`C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\`, con il
+`..\Gestora documentazione\Gestora_backup\` (accanto alla cartella del progetto; i comandi partono da lì), con il
 nome `gestora_AAAA-MM-GG.dump`. Un backup contiene **dati personali** (email e nomi dei clienti,
 indirizzi IP nel registro attività) e le **chiavi che firmano i link email**: mai su Git, mai in
 una cartella condivisa. Si tengono le ultime 4 settimanali più quella fatta prima dell'ultima
@@ -399,13 +400,13 @@ può fallire).
 
 **1. Cartella (solo la prima volta):**
 ```powershell
-New-Item -ItemType Directory -Force "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup"
+New-Item -ItemType Directory -Force "..\Gestora documentazione\Gestora_backup"
 ```
 
 **2. Backup.** Nella stringa **non** si scrive la password: `pg_dump` la chiede, così non resta
 nella cronologia del terminale. Al posto di `<host>` e `<database>` i valori del pannello Neon.
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" "postgresql://neondb_owner@<host>.neon.tech/<database>?sslmode=require" -Fc -f "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump"
+& "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" "postgresql://neondb_owner@<host>.neon.tech/<database>?sslmode=require" -Fc -f "..\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump"
 ```
 `-Fc` è il formato compresso di PostgreSQL: si legge solo con `pg_restore`, ma permette di
 ripristinare anche una tabella sola.
@@ -413,7 +414,7 @@ ripristinare anche una tabella sola.
 **3. Controllo veloce** che il file sia leggibile e contenga le tabelle (elenco del contenuto,
 non tocca nessun database):
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" --list "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump" | Select-String "TABLE DATA"
+& "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" --list "..\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump" | Select-String "TABLE DATA"
 ```
 Devono comparire le tabelle di Gestora (`Prenotazioni`, `Utenti`, `DataProtectionKeys`,
 `__EFMigrationsHistory`…) e quelle `qrtz_*` di Quartz.
@@ -439,7 +440,7 @@ mese, su un database **apposta**, `gestora_ripristino`, sul server locale 18 (po
 2. Ripristino. `--no-owner --no-acl` perché il proprietario su Neon (`neondb_owner`) in locale non
    esiste: le tabelle diventano di `postgres`.
 ```powershell
-& "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -p 5432 -d gestora_ripristino --no-owner --no-acl "C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump"
+& "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" -U postgres -p 5432 -d gestora_ripristino --no-owner --no-acl "..\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump"
 ```
    Non deve stampare errori. Un avviso su un'estensione o un ruolo propri di Neon si può ignorare;
    un errore su una tabella di Gestora no.
@@ -500,7 +501,7 @@ connection string che compare (formato `postgresql://...`), poi:
 Le credenziali di sviluppo vivono **fuori dal repository**, in un file sulla macchina:
 
 ```
-C:\Users\Carlo Taranto\AppData\Roaming\Microsoft\UserSecrets\aa9f6e84-1217-48e1-9783-b07f152f7874\secrets.json
+%APPDATA%\Microsoft\UserSecrets\aa9f6e84-1217-48e1-9783-b07f152f7874\secrets.json
 ```
 
 Comandi, da eseguire dentro `GestoraWebApi\`:

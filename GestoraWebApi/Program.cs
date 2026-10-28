@@ -436,6 +436,13 @@ if (app.Environment.IsDevelopment() && args.Contains(SeedSviluppo.ArgomentoSeed)
     return;
 }
 
+// Seed per screenshot e dimostrazioni (V2-023): stesse protezioni, vedi SeedVetrina.
+if (app.Environment.IsDevelopment() && args.Contains(SeedVetrina.ArgomentoSeed))
+{
+    await SeedVetrina.EseguiAsync(app.Services, app.Services.GetRequiredService<ILogger<Program>>());
+    return;
+}
+
 if (app.Environment.IsDevelopment() && args.Contains(SeedSviluppo.ArgomentoPassword))
 {
     var passwordLogger = app.Services.GetRequiredService<ILogger<Program>>();

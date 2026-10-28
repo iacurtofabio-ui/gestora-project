@@ -1,6 +1,6 @@
 # Gestora — piano di chiusura v1.1 (prompt per Claude Code, modello Fable)
 
-> **Come si usa.** Aprire Claude Code dalla radice `C:\Users\Carlo Taranto\Progetti_Tech\Personali\Gestora`,
+> **Come si usa.** Aprire Claude Code dalla radice del progetto (`Gestora`),
 > impostare `/model fable`, incollare **tutto il testo da «PROMPT» in giù**. Il piano è stato scritto
 > il 18/09/2026 dopo lettura completa di CLAUDE.md (radice, backend, frontend), BACKLOG.md, RUNBOOK.md,
 > STORICO_FASI.md, GestoraDocs/verifica-redesign.md, AppuntiFix.txt e del codice coinvolto.
