@@ -127,7 +127,9 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   nessun filtro per ambiente: forza un job Quartz già registrato senza aspettare il cron.
 - **`update-prenotazione`/`annulla-prenotazione`**: aperte anche al Cliente, ma solo sulla propria
   prenotazione e solo fino a 2 ore prima dell'orario (`PrenotazioniService.GuardCutoffAsync`,
-  costante `CutoffOreClienteSelfService`); oltre la soglia 409, deve contattare il locale.
+  costante `CutoffOreClienteSelfService`); oltre la soglia 409, deve contattare il locale. La
+  prenotazione di un altro è **404 «non trovata»** (`NascondiSeAltrui`, `V2-029`), controllata subito
+  dopo la lettura e prima dello stato: un 403 o un 409 rivelerebbero che quell'Id esiste e com'è messo.
 
 ## RBAC — perimetro ruoli (vedi `Auth/Roles.cs`)
 
@@ -397,7 +399,7 @@ fisso).
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri. **491 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri. **492 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

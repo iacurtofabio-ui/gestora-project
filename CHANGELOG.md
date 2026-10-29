@@ -29,6 +29,10 @@ Production-ready release: privacy, security and a public showcase.
 
 ### Changed
 - Backend upgraded to **.NET 10 LTS** (ASP.NET Core and Entity Framework Core 10).
+- Hardening from a security audit: a customer touching someone else's booking now gets "not found"
+  instead of revealing that it exists; the same password rules (8 characters, uppercase, number,
+  symbol) enforced at every layer; frontend dependencies updated, with no known advisory left in
+  what reaches the browser.
 
 ### Fixed
 - "Seats left" could promise a place no free table could host (e.g. 3 seats left over on a table

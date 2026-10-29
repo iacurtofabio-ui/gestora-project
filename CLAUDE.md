@@ -34,7 +34,7 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz |
-| Test | **491** backend (xUnit) + **133** frontend (Vitest), tutti verdi |
+| Test | **492** backend (xUnit) + **133** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
 | Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
@@ -63,8 +63,10 @@ due rischi prima accettati, riaperti da Fabio e da fare **prima** della `v3.0.0`
 dell'Admin) e `V2-028` (token in cookie `HttpOnly`). Restano da valutare `SEC-003`…`SEC-009`.
 Il 29/10/2026 fatto `V2-027` (sviluppa Claude): le password sbagliate si contano per email +
 indirizzo (`TentativiAccesso`), non più per account; provato dal vivo (l'indirizzo che sbaglia riceve
-423, l'Admin da un altro indirizzo entra). **Prossimo passo: le prove a vista di Fabio**
-(`V2-023-T06`, `V2-026-T02`, `V2-027-T02`), poi `V2-028`.
+423, l'Admin da un altro indirizzo entra). Prove a vista di Fabio superate (`T06`, `V2-026`, `V2-027`).
+`V2-028` analizzata e **rimandata a dopo la `v3.0.0`** (Safari blocca i cookie fra siti diversi:
+serve il passaggio da Vercel o un dominio proprio). **Prossimo passo: `V2-023-T08`**, rilascio
+`v3.0.0` (prima, se Fabio vuole, `SEC-003`…`SEC-009` dell'audit).
 
 **Prima** (22-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
 sviluppata da Claude. Migration 10 `PrivacyEAccount`; informativa privacy e termini (`/privacy`,

@@ -16,8 +16,12 @@ namespace GestoraWebApi.Extensions
             //Configuration Identity
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
-                options.Password.RequiredLength = 6;
-                options.Password.RequireNonAlphanumeric = false;
+                // SEC-007 (V2-029): le stesse regole di Validators/RegolePassword (8 caratteri,
+                // maiuscola, numero, carattere speciale). Il validator le controlla per primo e
+                // dà i messaggi; queste sono la seconda rete, se un giorno un ingresso lo saltasse.
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
                 options.Password.RequireDigit = true;
 
                 // Il login cerca l'utente per email (FindByEmailAsync): con due account sulla

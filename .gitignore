@@ -21,6 +21,7 @@ graphify-out/
 # Appunti personali, per sicurezza anche se spostati fuori
 /AppuntiFix.txt
 /Credenziali.txt
+Azure variables.json
 
 # backup di database e dump: mai versionati (dati reali)
 backup_*.csv
@@ -32,3 +33,13 @@ env*.txt
 
 # Tracker di progetto: solo locale, non versionato
 /TrackGestora.xlsx
+
+# configurazioni e certificati, mai versionati
+.env
+.env.*
+!.env.example
+secrets.json
+*.pfx
+*.pem
+*.key
+*.p12

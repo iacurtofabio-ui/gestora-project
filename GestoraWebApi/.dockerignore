@@ -11,3 +11,12 @@ Logs/
 *.sql.gz
 graphify-out/
 docs/
+
+# segreti e certificati, mai nell'immagine Docker
+.env
+.env.*
+secrets.json
+*.pfx
+*.pem
+*.key
+*.p12

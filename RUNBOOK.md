@@ -55,7 +55,7 @@ cd "...\gestora-frontend"; npm run build
 cd "...\gestora-frontend"; npm run lint
 ```
 
-Valori attesi oggi: **491** test backend, **133** frontend, build senza errori, lint senza errori.
+Valori attesi oggi: **492** test backend, **133** frontend, build senza errori, lint senza errori.
 I test del backend stanno in `GestoraWebApi.Tests/`, accanto all'API: si lanciano dalla radice
 attraverso `Gestora.sln`.
 
