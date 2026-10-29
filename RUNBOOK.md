@@ -474,10 +474,31 @@ psql "postgresql://<utente>:<password>@<host>.neon.tech/<database>?sslmode=requi
 > essere riscritta; lo stesso con un file di credenziali di connessione (`envDBNeon.txt`).
 > Principio: qualsiasi cosa con dentro una password sta fuori da Git.
 
+### I due utenti del database (`V2-029`, 29/10/2026)
+
+| Utente | Chi lo usa | Cosa può fare |
+|---|---|---|
+| `gestora_app` | l'app su Azure (`ConnectionStrings__DefaultConnection`) | solo leggere e scrivere i dati: `SELECT`, `INSERT`, `UPDATE`, `DELETE` sulle tabelle, uso delle sequenze |
+| `neondb_owner` | Fabio, per migration (§4) e backup (§6) | tutto, compreso creare e cancellare tabelle |
+
+Se qualcuno ottenesse la password dell'app, non potrebbe cambiare la struttura del database né
+cancellare tabelle. I permessi di `gestora_app` valgono anche per le tabelle create in futuro da
+`neondb_owner` (`ALTER DEFAULT PRIVILEGES`): **le migration vanno applicate con `neondb_owner`**,
+altrimenti le tabelle nuove non ricevono i permessi.
+
+Per ricontrollare i permessi, nel SQL Editor di Neon con `neondb_owner` (deve tornare zero righe):
+```sql
+SELECT c.relname AS tabella FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND NOT has_table_privilege('gestora_app', c.oid, 'SELECT,INSERT,UPDATE,DELETE');
+```
+⚠️ Non usare `information_schema` nel SQL Editor di Neon (errore «relation "schemata" does not
+exist») e, per le sequenze, filtrare il tipo con un `CASE` prima di `has_sequence_privilege`:
+PostgreSQL non valuta le condizioni del `WHERE` nell'ordine in cui sono scritte.
+
 ### Rotazione della password del database
 
-Dashboard Neon → progetto → **Roles** → `neondb_owner` → **Reset password**. Copiare la nuova
-connection string che compare (formato `postgresql://...`), poi:
+Dashboard Neon → progetto → **Roles** → l'utente da ruotare → **Reset password**. Per l'app è
+`gestora_app`; per `neondb_owner` non si tocca Azure, basta usare la password nuova nelle
+migration e nei backup. Per `gestora_app`, copiare la nuova password, poi:
 
 1. **Azure** — App Service `gestora-api` → *Environment variables* → aggiornare
    `ConnectionStrings__DefaultConnection` (**doppio** underscore — vedi trappola sotto) con la
@@ -556,6 +577,11 @@ PowerShell 5.1 lo legge con la codifica sbagliata e gli accenti si rompono.
 
 ### Azure App Service e Vercel: le trappole della configurazione
 
+- **`AllowedHosts` su Azure** (`V2-029`, dal 29/10/2026): vale il solo nome del backend
+  (`gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net`). Le richieste con un altro nome
+  di host vengono rifiutate. **Se il backend cambia indirizzo o riceve un dominio proprio, va
+  aggiornata anche questa variabile**, altrimenti ogni chiamata fallisce. Per tornare indietro basta
+  togliere la variabile.
 - **Variabili con doppio underscore.** `ConnectionStrings__DefaultConnection`, non
   `ConnectionStrings:DefaultConnection`: è così che Azure passa le variabili d'ambiente come
   sezioni annidate della configurazione .NET. Un solo underscore non dà errore, dà solo un valore

@@ -33,7 +33,7 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 |---|---|
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
-| Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz |
+| Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
 | Test | **492** backend (xUnit) + **133** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
@@ -65,8 +65,11 @@ Il 29/10/2026 fatto `V2-027` (sviluppa Claude): le password sbagliate si contano
 indirizzo (`TentativiAccesso`), non più per account; provato dal vivo (l'indirizzo che sbaglia riceve
 423, l'Admin da un altro indirizzo entra). Prove a vista di Fabio superate (`T06`, `V2-026`, `V2-027`).
 `V2-028` analizzata e **rimandata a dopo la `v3.0.0`** (Safari blocca i cookie fra siti diversi:
-serve il passaggio da Vercel o un dominio proprio). **Prossimo passo: `V2-023-T08`**, rilascio
-`v3.0.0` (prima, se Fabio vuole, `SEC-003`…`SEC-009` dell'audit).
+serve il passaggio da Vercel o un dominio proprio). Fatte anche le migliorie
+dell'audit (`V2-029`, `SEC-003`…`SEC-009`): pacchetti del frontend, regole password, 404 sulle
+prenotazioni altrui, `.gitignore`/`.dockerignore`, su Neon l'utente `gestora_app` con soli permessi sui
+dati (usato da Azure; `neondb_owner` resta per migration e backup, `RUNBOOK.md` §6), `AllowedHosts` su
+Azure. **Prossimo passo: `V2-023-T08`**, rilascio `v3.0.0`.
 
 **Prima** (22-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
 sviluppata da Claude. Migration 10 `PrivacyEAccount`; informativa privacy e termini (`/privacy`,

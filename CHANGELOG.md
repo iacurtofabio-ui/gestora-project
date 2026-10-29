@@ -3,7 +3,7 @@
 All notable changes to Gestora. Dates are in `YYYY-MM-DD` format; versions follow
 [Semantic Versioning](https://semver.org/). Development started in May 2026.
 
-## [3.0.0] — Unreleased
+## [3.0.0] — 2026-10-29
 
 Production-ready release: privacy, security and a public showcase.
 
