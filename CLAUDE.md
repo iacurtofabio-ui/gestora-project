@@ -5,18 +5,16 @@
 
 ---
 
-## 1. Stato — aggiornato al 28/10/2026
+## 1. Stato — aggiornato al 29/10/2026
 
-**Verso la v3.0.0, production ready** (decisione del 15/10/2026): Gestora va resa pronta per
-chiunque, con privacy, sicurezza, modulo dei pareri e vetrina. Piano in sei fasi (F0-F5:
-`V2-016`…`V2-019`, `V2-022`, `V2-023` in `BACKLOG.md`), nello
-[studio di fattibilità](https://claude.ai/code/artifact/f31f316c-733c-4a5e-a93f-2f139c0518c1):
-circa 37 ore a 3-4 ore a settimana, fino a fine gennaio 2027. La v2 è chiusa con il tag `v2.1.0`
-e la produzione è in **«portale in manutenzione»** dal 15/10/2026 fino al rilascio `v3.0.0`
-(`RUNBOOK.md` §5). **Il piano si segue dal foglio *Task v3* del tracker** (§8): il prossimo passo è in
-cima alla Dashboard.
-A v3.0.0 chiusa si decide se fare la **v3.1.0**, una demo interattiva `/demo` per i visitatori
-(nota in `BACKLOG.md`).
+**Gestora v3.0.0 è in produzione dal 29/10/2026**, production ready: privacy, sicurezza, modulo
+dei pareri e vetrina. Il piano in sei fasi (F0-F5, deciso il 15/10/2026, nello
+[studio di fattibilità](https://claude.ai/code/artifact/f31f316c-733c-4a5e-a93f-2f139c0518c1))
+stimava 37 ore fino a fine gennaio 2027: è chiuso in due settimane. **Il lavoro si segue dal foglio
+*Task v3* del tracker** (§8): il prossimo passo è in cima alla Dashboard.
+**Prossimo passo: `V3.1-T01`**, decidere la **v3.1.0**: primo lavoro `V2-028` (token in cookie
+`HttpOnly`, strada da scegliere), più l'eventuale demo interattiva `/demo` per i visitatori (nota in
+`BACKLOG.md`).
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -24,10 +22,9 @@ a .NET 9 (10/11/2026).
 servizio: le segnalazioni che arriveranno da lì, insieme alle nuove richieste, sono il lavoro della
 v2 (vedi §4).
 
-**Produzione chiusa per manutenzione** dal 15/10/2026: il sito mostra solo «Gestora è in
-manutenzione», ogni `/api` risponde 503, `/health` risponde `Healthy` (variabili
-`VITE_MANUTENZIONE` su Vercel e `Manutenzione__Attiva` su Azure). Il primo avvio (`/setup`) non è
-stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al rilascio `v3.0.0`.
+**Produzione aperta dal 29/10/2026**: primo Admin creato da `/setup`, sala configurata, i dati su
+Neon sono veri. Il «portale in manutenzione» (dal 15/10 al 29/10/2026) resta pronto: si riaccende
+con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md` §5).
 
 | | |
 |---|---|
@@ -36,10 +33,18 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
 | Test | **492** backend (xUnit) + **133** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
-| Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
-| Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
+| Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: 1 avviso «low». AutoMapper 12.0.1 accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
+| Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v3.0.0`**, 29/10/2026, merge con la PR #8 `8ab0db0`) |
 
-**Ultima cosa fatta** (27/10/2026): **chiusa la F4 del piano v3** (`V2-022`, modulo dei pareri),
+**Ultima cosa fatta** (29/10/2026): **rilascio `v3.0.0`** e chiusura della F5 (`V2-023-T08`, `T09`),
+eseguiti da Fabio con la scaletta di Claude. Backup con un branch di Neon (`backup-2026-10-29`),
+merge `v2` → `main` con la PR #8 (`8ab0db0`), nessuna migration; manutenzione spenta prima su Vercel
+e poi su Azure, subito dopo il `/setup` del primo Admin; sala configurata e **registrazione completa
+provata con un'email vera** (in sospeso dal `V2-003`). Tag `v3.0.0` e release su GitHub, sezione
+*About* con descrizione e link al sito. Controlli finali superati (header, `robots.txt`,
+`sitemap.xml`, anteprima social, UptimeRobot).
+
+**F4** (27/10/2026): **chiusa la F4 del piano v3** (`V2-022`, modulo dei pareri),
 sviluppata da Claude. Pagina pubblica `/pareri` (link dalla vetrina e dal menu utente) e
 `POST /api/Pareri/invia`: il parere arriva via email a `Pareri:Destinatario` (Brevo) e non si salva nel
 database; campo trappola contro i programmi automatici; limite di **2 pareri in 30 giorni per
@@ -49,7 +54,7 @@ su `v2`. Rilascio: prima la variabile `Pareri__Destinatario` su Azure, poi merge
 controllati l'immagine nuova scaricata, `/health` Healthy, `/api` ancora 503, Vercel *Ready*. Nessuna
 migration.
 
-**F5 in corso** (28/10/2026, `V2-023`, vetrina e rilascio `v3.0.0`, sviluppa Claude): passi nel
+**F5** (28-29/10/2026, `V2-023`, vetrina e rilascio `v3.0.0`, sviluppa Claude): passi nel
 foglio *Task v3*. Fatti `T02`…`T05`: `README.md` in inglese con screenshot (`docs/screenshots/`, dati
 del nuovo `--seed-vetrina`), `LICENSE` «All rights reserved» (codice solo da guardare), `CHANGELOG.md`,
 anteprima social (`og-image.png`, tag `og:`/`twitter:`), `robots.txt` e `sitemap.xml` (indicizzate
@@ -60,7 +65,7 @@ documenti di lavoro restano pubblici. Tolto il doppione `GestoraWebApi/Gestora.s
 Commit `d4dea65` su `v2`. Lo stesso giorno **audit di sicurezza** (`SEC-001`…`SEC-009`, esito in
 chat): nessun segreto attivo esposto; da lì `V2-026` (niente dati sulla salute nelle note, fatto) e
 due rischi prima accettati, riaperti da Fabio e da fare **prima** della `v3.0.0`: `V2-027` (blocco
-dell'Admin) e `V2-028` (token in cookie `HttpOnly`). Restano da valutare `SEC-003`…`SEC-009`.
+dell'Admin) e `V2-028` (token in cookie `HttpOnly`).
 Il 29/10/2026 fatto `V2-027` (sviluppa Claude): le password sbagliate si contano per email +
 indirizzo (`TentativiAccesso`), non più per account; provato dal vivo (l'indirizzo che sbaglia riceve
 423, l'Admin da un altro indirizzo entra). Prove a vista di Fabio superate (`T06`, `V2-026`, `V2-027`).
@@ -69,9 +74,9 @@ serve il passaggio da Vercel o un dominio proprio). Fatte anche le migliorie
 dell'audit (`V2-029`, `SEC-003`…`SEC-009`): pacchetti del frontend, regole password, 404 sulle
 prenotazioni altrui, `.gitignore`/`.dockerignore`, su Neon l'utente `gestora_app` con soli permessi sui
 dati (usato da Azure; `neondb_owner` resta per migration e backup, `RUNBOOK.md` §6), `AllowedHosts` su
-Azure. **Prossimo passo: `V2-023-T08`**, rilascio `v3.0.0`.
+Azure (commit `5ff448e`). Poi il rilascio, sopra.
 
-**Prima** (22-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
+**F3** (22-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
 sviluppata da Claude. Migration 10 `PrivacyEAccount`; informativa privacy e termini (`/privacy`,
 `/termini`); presa visione in registrazione e al primo accesso; recupero password con link a 2 ore;
 «Il mio account» (`/account`) con cambio password e cancellazione dell'account (prenotazioni passate
@@ -228,9 +233,9 @@ e `limiti-prenotazione`.
 Cambiare `.env.local` non ha nessun effetto sulla produzione. Aprire `localhost:5173` mostra
 sempre i dati del database locale: è voluto.
 
-⚠️ La produzione non è ancora in uso (vedi §1), ma il locale può fare il primo avvio in qualsiasi
-momento e da lì i dati sono veri: niente reset del database di produzione e niente prove "sporche"
-su Neon senza averlo deciso insieme.
+⚠️ La produzione è aperta dal 29/10/2026 (vedi §1) e i dati su Neon sono veri: niente reset del
+database di produzione e niente prove "sporche" su Neon senza averlo deciso insieme. Prima di ogni
+migration, un backup (`RUNBOOK.md` §6).
 
 ---
 

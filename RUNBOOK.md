@@ -223,16 +223,16 @@ di un secondo, prima che .NET abbia finito di partire. **Non è un errore del co
 richiesta successiva (anche `/health` o il controllo di UptimeRobot) il sito riparte con
 l'immagine nuova, il controllo riesce in circa 11 secondi e il log dice `Site started`. Quindi,
 dopo un rilascio: aprire `/health` e aspettare `Healthy`. Fino a quella richiesta il backend resta
-spento: con la produzione aperta al pubblico va tenuto presente (da rivedere prima della `v3.0.0`).
+spento. Con la produzione aperta (dal 29/10/2026) **dopo ogni rilascio si apre subito `/health`**:
+altrimenti il primo visitatore lo fa ripartire lui, aspettando una decina di secondi.
 
 Quindi: se la modifica è solo di backend, Vercel ricostruisce ma non cambia niente (il frontend
 resta lo stesso), e viceversa. La catena backend ha due passaggi automatici in serie (Actions poi
 webhook Azure): se `/health` non risponde subito dopo il push, aspettare qualche minuto prima di
 sospettare un problema — è la catena che sta ancora girando, non necessariamente un guasto.
 
-**Numerazione:** la v2 si è chiusa con il tag `v2.1.0` (15/10/2026); il prossimo tag è `v3.0.0`,
-alla fine del piano della v3 (`BACKLOG.md`). Fino ad allora i rilasci delle singole fasi vanno su
-`main` **senza tag**, dietro il «portale in manutenzione» (sotto). In generale: `vX.y.0` per un
+**Numerazione:** la v2 si è chiusa con il tag `v2.1.0` (15/10/2026), la v3 con `v3.0.0`
+(29/10/2026, PR #8, con una release su GitHub). Il prossimo è `v3.1.0`. In generale: `vX.y.0` per un
 gruppo di funzionalità o segnalazioni, `vX.y.z` per fix e correzioni. Un
 riordino interno, senza effetti sull'applicazione, può restare **senza tag**.
 
@@ -341,7 +341,8 @@ locale basta mandare tre pareri di fila; per ricominciare, riavviare il backend.
 
 ### Il portale in manutenzione (`V2-016`)
 
-Finché la v3 non è rilasciata, la produzione resta chiusa. Il blocco ha **due interruttori**, uno
+È stato acceso dal 15/10 al 29/10/2026, fino al rilascio della `v3.0.0`; oggi è spento e resta
+pronto per un intervento che richieda di chiudere il sito. Il blocco ha **due interruttori**, uno
 per parte, e non richiede modifiche al codice:
 
 | Dove | Variabile | Effetto |
@@ -360,8 +361,9 @@ curl https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net/hea
 deve rispondere `Healthy`; una chiamata a `/api` (per esempio `.../api/Setup/stato`) deve
 rispondere 503. Aprendo il frontend si vede solo la schermata di manutenzione.
 
-**Spegnere** (al rilascio `v3.0.0`): togliere le due variabili, o metterle a `false`, e ripubblicare
-il frontend.
+**Spegnere**: togliere le due variabili, o metterle a `false`, e ripubblicare il frontend. Ordine
+usato al rilascio `v3.0.0`: prima Vercel, poi Azure. Se nel database manca ancora l'Admin, il
+`/setup` va fatto **subito dopo**: finché non c'è, chiunque apra il sito può crearlo.
 
 > ⚠️ Spenta di default: in `appsettings.json` `Manutenzione:Attiva` vale `false`, e senza la
 > variabile su Vercel il frontend si apre normalmente. In locale non cambia niente.
