@@ -37,6 +37,8 @@ export default function PrivacyPage() {
           <li>
             <strong>Prenotazioni</strong>: giorno, turno, numero di persone, note che scrivi, tavoli
             assegnati e, se la prenotazione è presa dal personale, il nome di chi si presenta.
+            Gestora non raccoglie dati sulla salute: nelle note non vanno scritte allergie o
+            intolleranze, che si comunicano direttamente al locale.
           </li>
           <li>
             <strong>Registro attività</strong>: le operazioni fatte con l’account (registrazione,

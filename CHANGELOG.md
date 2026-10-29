@@ -18,6 +18,9 @@ Production-ready release: privacy, security and a public showcase.
 - **Public feedback form** at `/pareri`, delivered by email and never stored, with a honeypot field
   and a limit of 2 messages per 30 days per address.
 - **Maintenance mode**, switched on by configuration on both backend (503 on `/api`) and frontend.
+- After 5 wrong passwords the **address** that failed is blocked for 15 minutes, not the account:
+  nobody can keep the Admin locked out by failing on purpose, and the block no longer reveals
+  which emails are registered.
 - Security headers on API and frontend (CSP, HSTS, `X-Frame-Options`, `nosniff`); Data Protection
   keys stored in the database, so email links survive restarts.
 - Database backup procedure and uptime monitoring of `/health`.

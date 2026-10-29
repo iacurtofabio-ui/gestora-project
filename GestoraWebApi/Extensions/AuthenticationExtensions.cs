@@ -31,11 +31,11 @@ namespace GestoraWebApi.Extensions
                 options.User.AllowedUserNameCharacters =
                     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ 'àèéìòùÀÈÉÌÒÙ";
 
-                // Lockout: senza questo, CheckPasswordSignInAsync tiene traccia dei tentativi
-                // falliti ma non blocca mai l'account — brute force senza freni sul login.
-                options.Lockout.AllowedForNewUsers = true;
-                options.Lockout.MaxFailedAccessAttempts = 5;
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                // V2-027: il blocco di Identity (per account) NON si usa più. Bloccava l'account a
+                // chiunque sbagliasse 5 volte, quindi chiunque poteva chiudere fuori l'Admin. Le
+                // password sbagliate le conta Infrastructure/Auth/TentativiAccesso, per email +
+                // indirizzo, e il login usa CheckPasswordAsync. Non riattivarlo pensando che manchi.
+                options.Lockout.AllowedForNewUsers = false;
 
                 // V2-019: il link per reimpostare la password scade in 2 ore, non in 24.
                 options.Tokens.PasswordResetTokenProvider = RecuperoPasswordTokenProvider<ApplicationUser>.Nome;

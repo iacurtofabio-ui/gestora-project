@@ -110,8 +110,8 @@ describe('messaggioErroreLogin', () => {
     expect(messaggioErroreLogin(erroreConRisposta(401, vuoto))).toMatch(/non corrispondono/)
   })
 
-  it('account bloccato su 423', () => {
-    expect(messaggioErroreLogin(erroreConRisposta(423, vuoto))).toMatch(/bloccato/)
+  it('troppi tentativi sbagliati su 423', () => {
+    expect(messaggioErroreLogin(erroreConRisposta(423, vuoto))).toMatch(/Troppi tentativi sbagliati/)
   })
 
   it('troppi tentativi su 429', () => {

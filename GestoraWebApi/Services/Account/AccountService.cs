@@ -38,16 +38,19 @@ namespace GestoraWebApi.Services.Account
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogActivityService _logActivityService;
         private readonly IEliminazioneAccountService _eliminazione;
+        private readonly ITentativiAccesso _tentativiAccesso;
         private readonly ILogger<AccountService> _logger;
 
         public AccountService(UserManager<ApplicationUser> userManager,
                               ILogActivityService logActivityService,
                               IEliminazioneAccountService eliminazione,
+                              ITentativiAccesso tentativiAccesso,
                               ILogger<AccountService> logger)
         {
             _userManager = userManager;
             _logActivityService = logActivityService;
             _eliminazione = eliminazione;
+            _tentativiAccesso = tentativiAccesso;
             _logger = logger;
         }
 
@@ -78,7 +81,7 @@ namespace GestoraWebApi.Services.Account
             if (!risultato.Succeeded)
                 throw ErroriIdentity.ComeValidationException(risultato, "Password non valida: controlla i requisiti.");
 
-            await _userManager.ResetAccessFailedCountAsync(user);
+            _tentativiAccesso.Azzera(user.Email, ip);
             await _logActivityService.LogAsync(user.Id, "Password cambiata dall'account", ip);
             return user;
         }
@@ -129,17 +132,18 @@ namespace GestoraWebApi.Services.Account
 
         /// <summary>
         /// Controlla la password di chi è già collegato, con lo stesso blocco del login: chi trova una
-        /// sessione aperta non deve poter provare password all'infinito da qui.
+        /// sessione aperta non deve poter provare password all'infinito da qui. Come il login (V2-027)
+        /// il blocco è per email + indirizzo, non per account.
         /// </summary>
         private async Task VerificaPasswordAsync(ApplicationUser user, string password, string campo,
                                                  string titolo, string sbagliata, string ip)
         {
-            if (await _userManager.IsLockedOutAsync(user))
-                throw ErroreSulCampo(campo, titolo, "Troppi tentativi sbagliati. Riprova tra qualche minuto.");
+            if (_tentativiAccesso.Bloccato(user.Email, ip))
+                throw ErroreSulCampo(campo, titolo, "Troppi tentativi sbagliati. Riprova tra 15 minuti.");
 
             if (!await _userManager.CheckPasswordAsync(user, password))
             {
-                await _userManager.AccessFailedAsync(user);
+                _tentativiAccesso.RegistraErrore(user.Email, ip);
                 _logger.LogWarning("[{Service}] - [{Method}]: Password errata per {UserId} da {Ip}",
                     nameof(AccountService), nameof(VerificaPasswordAsync), user.Id, ip);
                 throw ErroreSulCampo(campo, titolo, sbagliata);

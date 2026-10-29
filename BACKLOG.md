@@ -1,6 +1,6 @@
 # Gestora v2 — cosa resta da fare
 
-Aggiornato il **27/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
+Aggiornato il **28/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
 non è scritta qui, non è in programma.
 
 Il foglio *Fix e Bug* del tracker resta il registro dettagliato dei difetti, il foglio *Task v3* la
@@ -64,6 +64,9 @@ fasi vanno su `main` una alla volta, dietro la manutenzione.
 | `V2-019` | F3 | richiesta | Privacy e account: informativa e termini, presa visione in registrazione, cancellazione dei propri dati, registro attività a 24 mesi, recupero password, «Il mio account», account inattivi da 24 mesi eliminati dopo un'email di avviso. Passi precisati il 26/10/2026 (`V2-019-T02`…`T13` nel foglio *Task v3*): una migration (10); un account con prenotazioni da servire non si cancella, quelle passate restano senza utente. L'export dei propri dati per l'utente (`T07`) è stato fatto e poi tolto il 26/10/2026: troppo tecnico per chi prenota, le richieste di una copia dei dati arrivano per email. In produzione dal 27/10/2026 (commit `1927a5c`, migration 10 su Neon, merge `a909ac9`) | Claude | fatto |
 | `V2-025` | — | richiesta | Report delle prenotazioni per l'Admin: file CSV da aprire in Excel, da data a data (all'inizio il mese in corso), tutti gli stati con una colonna Stato. Deciso il 26/10/2026, al posto dell'export per l'utente; si fa dopo la F3, prima della F4. In produzione dal 27/10/2026 (commit `a569dee`, merge `839939c`) | Claude | fatto |
 | `V2-022` | F4 | richiesta | Modulo pubblico dei pareri con invio email a Fabio. Passi precisati il 27/10/2026 (`V2-022-T02`…`T07` nel foglio *Task v3*): pagina `/pareri` (link dalla vetrina e dal menu utente), messaggio obbligatorio con nome ed email facoltativi, limite di richieste e campo trappola contro lo spam, niente salvataggio nel database, destinatario in `Pareri:Destinatario`; informativa aggiornata. Limite di 2 pareri in 30 giorni per indirizzo (deciso da Fabio il 27/10/2026). In produzione dal 27/10/2026 (commit `d2b2b1e`, merge `c7acaf7`) | Claude | fatto |
+| `V2-026` | F5 | miglioramento | Niente dati sulla salute nelle note (`SEC-002` dell'audit di sicurezza del 28/10/2026): il campo suggeriva «Allergie», che sono dati sanitari (GDPR art. 9). Deciso da Fabio di non raccoglierli: suggerimento cambiato, avviso sotto il campo, informativa aggiornata (versione `2026-10-28`), seed vetrina senza note sanitarie | Claude | fatto |
+| `V2-027` | F5 | miglioramento | Il blocco dopo 5 password sbagliate non deve poter chiudere fuori l'Admin: si blocca chi sbaglia (l'indirizzo), non l'account. Era un rischio accettato, riaperto da Fabio il 28/10/2026 dopo l'audit. Fatto il 29/10/2026: contatore `TentativiAccesso` per email + indirizzo (15 minuti), conta anche le email inesistenti; blocco di Identity spento; stesso contatore per «Il mio account», azzerato dal recupero password | Claude | fatto |
+| `V2-028` | F5 | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, al posto di `localStorage`. Era un rischio accettato, riaperto da Fabio il 28/10/2026 dopo l'audit; prima della `v3.0.0`. Richiede che le chiamate passino da Vercel (`/api` girato al backend), perché i browser bloccano i cookie fra domini diversi. Stima 6-10 ore | — | da fare |
 | `V2-023` | F5 | studio | Vetrina e rilascio: README in inglese, screenshot, LICENSE, CHANGELOG, anteprime social, `v3.0.0`. Passi precisati il 28/10/2026 (`V2-023-T02`…`T09` nel foglio *Task v3*): codice con **tutti i diritti riservati** (nessuna licenza aperta), `robots.txt` che lascia indicizzare solo le pagine pubbliche, screenshot in tema chiaro; dopo il rilascio il primo avvio in produzione (`/setup`, sala, prova completa della registrazione) | Claude | in corso |
 
 Scartate il 15/10/2026, prima di iniziare: `V2-020` e `V2-021` (prova pubblica con una sandbox in
@@ -146,9 +149,6 @@ nostra le rende utili.
 **Utenti e comunicazione**
 - Promemoria della prenotazione per email (la conferma dell'indirizzo c'è dal 14/10/2026, `V2-003`)
 - Pagina del registro attività nel frontend (oggi il registro si legge solo dal database)
-- Autenticazione con cookie `HttpOnly` + protezione CSRF, al posto del token in `localStorage`.
-  È una riprogettazione, non un fix: il token in `localStorage` non è un bug (vedi `RUNBOOK.md`
-  §9), ma un cookie `HttpOnly` toglie anche la possibilità teorica di leggerlo da JavaScript
 
 **Codice**
 - Estrarre la logica di autenticazione da `AuthenticationUserController` in un service dedicato,
@@ -178,10 +178,6 @@ mapping.
 **"Una prenotazione al giorno" per il Cliente è un controllo dell'applicazione.** Con due
 richieste parallele su fasce diverse si può aggirare. Rischio accettato (decisione di prodotto
 10); non riguarda il doppio tavolo, che è invece protetto da un vincolo vero nel database.
-
-**Blocco del login dopo 5 tentativi in 15 minuti.** Chi conosce l'email dell'Admin può tenerlo
-bloccato sbagliando la password apposta. È il prezzo della protezione contro i tentativi a forza
-bruta, accettato.
 
 **Job notturni al primo accesso del giorno.** Sul piano gratuito F1 di Azure l'applicazione si
 spegne senza traffico, quindi i job Quartz partono quando arriva la prima richiesta. Per farli

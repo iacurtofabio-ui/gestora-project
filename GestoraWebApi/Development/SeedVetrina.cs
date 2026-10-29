@@ -56,7 +56,8 @@ namespace GestoraWebApi.Development
 
         private static readonly string?[] Note =
         {
-            "Compleanno: candelina sul dolce", "Un seggiolone", "Una persona celiaca",
+            // Nessun dato sulla salute (allergie, intolleranze): Gestora non li raccoglie (V2-026).
+            "Compleanno: candelina sul dolce", "Un seggiolone", "Anniversario",
             "Tavolo vicino alla finestra, se possibile", "Arrivano 15 minuti dopo",
         };
 

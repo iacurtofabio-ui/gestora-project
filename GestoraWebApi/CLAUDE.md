@@ -91,7 +91,7 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
 - **«Il mio account»** (`V2-019`): `AccountController` (`/api/Account/...`, qualsiasi utente autenticato),
   logica in `Services/Account/AccountService`. L'utente è **sempre quello del token**, mai un id
   passato da fuori. `GET mio-account` dà i dati; `POST cambia-password` vuole la password attuale (con
-  lo stesso blocco dopo 5 tentativi del login, errori sul campo `passwordAttuale`), cambia il security
+  lo stesso blocco del login, per email + indirizzo, errori sul campo `passwordAttuale`), cambia il security
   stamp e restituisce un **token nuovo** con lo stesso inizio di sessione: le altre sessioni si chiudono,
   questa continua. `POST cancella-account` (con la password, stesso blocco) elimina l'account: 409 se ci sono prenotazioni da servire (`GetDaServireDiUtenteAsync`; il messaggio parla al cliente: «prenotazioni in programma», non usa `DescrizioneImpegni`) o se è l'ultimo Admin. L'eliminazione vera sta in `Services/Account/EliminazioneAccountService`, comune alla pulizia degli inattivi: in una transazione stacca tutte le prenotazioni (`StaccaDaUtenteAsync`: `UserId` a null, le sue prendono «Cliente eliminato» e perdono le note, quelle prese per altri tengono il nome del cliente), scrive la traccia e cancella l'utente. Le righe del registro restano con un id che non corrisponde più a nessuno. L'export dei propri dati per l'utente è stato tolto il 26/10/2026 (troppo tecnico): le richieste arrivano per email.
 - **Recupero password** (`V2-019`): `password-dimenticata` e `reimposta-password`, pubblici, con la regola
@@ -100,7 +100,8 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   link a `/reimposta-password`). La richiesta risponde **sempre allo stesso modo**. Il token scade in
   **2 ore** (`Infrastructure/Auth/RecuperoPasswordTokenProvider`, registrato come
   `PasswordResetTokenProvider`; la conferma email resta a 24 ore). Il reset cambia il security stamp
-  (le sessioni aperte si chiudono), conferma l'email e toglie il blocco per tentativi sbagliati. Le
+  (le sessioni aperte si chiudono), conferma l'email e toglie il blocco per tentativi sbagliati (`TentativiAccesso.Azzera` per
+  quell'indirizzo, più il vecchio blocco di Identity se ancora attivo). Le
   regole della password stanno in `Validators/RegolePassword` (`PasswordSicura()`), usate da
   registrazione, reset da Admin e recupero.
 - **Presa visione dell'informativa privacy** (`V2-019`): `register` pubblico vuole `accettaPrivacy: true`
@@ -114,6 +115,14 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   `Manutenzione__Attiva`) `Infrastructure/Middleware/ManutenzioneMiddleware` risponde **503** a ogni
   `/api` con il corpo `ErrorDetails`; `/health` resta libero. Sta dopo `UseCors` (il browser deve
   leggere il 503) e prima di autenticazione e limiti. Spento di default in `appsettings.json`.
+- **Blocco dopo 5 password sbagliate** (`V2-027`): `Infrastructure/Auth/TentativiAccesso` (singleton,
+  in memoria, un riavvio lo azzera) conta gli errori per **email + indirizzo**, non per account: 5
+  errori fermano quell'indirizzo su quell'email per 15 minuti (423), l'Admin vero da un altro
+  indirizzo entra. Conta anche le email inesistenti, così il 423 non rivela chi è registrato. Lo usano
+  `login` (controllo **prima** di cercare l'utente, poi `CheckPasswordAsync`) e «Il mio account». Il
+  blocco di Identity è spento (`Lockout.AllowedForNewUsers = false`): **non riattivarlo** e non tornare
+  a `SignInManager.CheckPasswordSignInAsync`, che rifiuterebbe un account con il vecchio blocco. Contro
+  chi prova molte email dallo stesso indirizzo resta `LoginPolicy` (5 al minuto per indirizzo).
 - **`JobsController`** (`POST trigger/{jobName}`, solo Admin) è **attivo anche in produzione**,
   nessun filtro per ambiente: forza un job Quartz già registrato senza aspettare il cron.
 - **`update-prenotazione`/`annulla-prenotazione`**: aperte anche al Cliente, ma solo sulla propria
@@ -388,7 +397,7 @@ fisso).
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri. **484 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri. **491 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

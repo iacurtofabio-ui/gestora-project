@@ -90,7 +90,7 @@ Gestora/
 ```
 
 Security in short: JWT authentication with role-based authorization, rate limits on login,
-sign-up, email confirmation, password reset, availability checks and feedback, account lockout after repeated failed logins, security
+sign-up, email confirmation, password reset, availability checks and feedback, a 15-minute block after 5 wrong passwords, applied to the address that failed rather than to the account (so nobody can lock the Admin out), security
 headers on both API and frontend (CSP, HSTS), Data Protection keys persisted in the database.
 
 ---

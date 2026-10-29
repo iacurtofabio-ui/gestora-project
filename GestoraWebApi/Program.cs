@@ -383,6 +383,8 @@ else
 builder.Services.AddScoped<GestoraWebApi.Services.Email.IConfermaEmailService, GestoraWebApi.Services.Email.ConfermaEmailService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Email.IRecuperoPasswordService, GestoraWebApi.Services.Email.RecuperoPasswordService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Account.IAccountService, GestoraWebApi.Services.Account.AccountService>();
+// V2-027: un solo contatore per tutta l'app (login e «Il mio account»), quindi singleton.
+builder.Services.AddSingleton<GestoraWebApi.Infrastructure.Auth.ITentativiAccesso, GestoraWebApi.Infrastructure.Auth.TentativiAccesso>();
 builder.Services.AddScoped<GestoraWebApi.Services.Account.IEliminazioneAccountService, GestoraWebApi.Services.Account.EliminazioneAccountService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Report.IReportPrenotazioniService, GestoraWebApi.Services.Report.ReportPrenotazioniService>();
 builder.Services.AddScoped<GestoraWebApi.Services.Pareri.IPareriService, GestoraWebApi.Services.Pareri.PareriService>();
