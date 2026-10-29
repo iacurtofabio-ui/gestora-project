@@ -3,7 +3,7 @@
 API per Gestora, gestionale di prenotazioni per attività con posti a sedere (ristoranti, pub,
 pizzerie): configurazione della sala, prenotazioni, assegnazione automatica dei tavoli.
 
-ASP.NET Core 9 · Entity Framework Core 9 + PostgreSQL · ASP.NET Identity + JWT · Quartz.NET ·
+ASP.NET Core 10 · Entity Framework Core 10 + PostgreSQL · ASP.NET Identity + JWT · Quartz.NET ·
 FluentValidation · AutoMapper · Serilog.
 
 ## Avvio in locale

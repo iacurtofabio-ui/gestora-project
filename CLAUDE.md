@@ -5,7 +5,7 @@
 
 ---
 
-## 1. Stato — aggiornato al 27/10/2026
+## 1. Stato — aggiornato al 28/10/2026
 
 **Verso la v3.0.0, production ready** (decisione del 15/10/2026): Gestora va resa pronta per
 chiunque, con privacy, sicurezza, modulo dei pareri e vetrina. Piano in sei fasi (F0-F5:
@@ -33,13 +33,45 @@ stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al
 |---|---|
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
-| Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz |
-| Test | **484** backend (xUnit) + **132** frontend (Vitest), tutti verdi |
+| Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
+| Test | **492** backend (xUnit) + **133** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
 | Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
 
-**Ultima cosa fatta** (26-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
+**Ultima cosa fatta** (27/10/2026): **chiusa la F4 del piano v3** (`V2-022`, modulo dei pareri),
+sviluppata da Claude. Pagina pubblica `/pareri` (link dalla vetrina e dal menu utente) e
+`POST /api/Pareri/invia`: il parere arriva via email a `Pareri:Destinatario` (Brevo) e non si salva nel
+database; campo trappola contro i programmi automatici; limite di **2 pareri in 30 giorni per
+indirizzo**, deciso da Fabio al posto dei 10 all'ora (contatore in memoria, un riavvio lo azzera);
+informativa con i pareri, versione `2026-10-27`. Prova a vista di Fabio superata, commit `d2b2b1e`
+su `v2`. Rilascio: prima la variabile `Pareri__Destinatario` su Azure, poi merge su `main` `c7acaf7`;
+controllati l'immagine nuova scaricata, `/health` Healthy, `/api` ancora 503, Vercel *Ready*. Nessuna
+migration.
+
+**F5 in corso** (28/10/2026, `V2-023`, vetrina e rilascio `v3.0.0`, sviluppa Claude): passi nel
+foglio *Task v3*. Fatti `T02`…`T05`: `README.md` in inglese con screenshot (`docs/screenshots/`, dati
+del nuovo `--seed-vetrina`), `LICENSE` «All rights reserved» (codice solo da guardare), `CHANGELOG.md`,
+anteprima social (`og-image.png`, tag `og:`/`twitter:`), `robots.txt` e `sitemap.xml` (indicizzate
+solo `/`, `/pareri`, `/privacy`, `/termini`), favicon riportata al blu. Fatto anche `T10`: il
+repository su GitHub è **pubblico**, quindi tolti i percorsi personali dai documenti versionati; i
+documenti di lavoro restano pubblici. Tolto il doppione `GestoraWebApi/Gestora.sln` e il tag locale
+`2.1.0`. Per sicurezza Fabio ha ruotato la password di Neon (quella vecchia era nella storia Git).
+Commit `d4dea65` su `v2`. Lo stesso giorno **audit di sicurezza** (`SEC-001`…`SEC-009`, esito in
+chat): nessun segreto attivo esposto; da lì `V2-026` (niente dati sulla salute nelle note, fatto) e
+due rischi prima accettati, riaperti da Fabio e da fare **prima** della `v3.0.0`: `V2-027` (blocco
+dell'Admin) e `V2-028` (token in cookie `HttpOnly`). Restano da valutare `SEC-003`…`SEC-009`.
+Il 29/10/2026 fatto `V2-027` (sviluppa Claude): le password sbagliate si contano per email +
+indirizzo (`TentativiAccesso`), non più per account; provato dal vivo (l'indirizzo che sbaglia riceve
+423, l'Admin da un altro indirizzo entra). Prove a vista di Fabio superate (`T06`, `V2-026`, `V2-027`).
+`V2-028` analizzata e **rimandata a dopo la `v3.0.0`** (Safari blocca i cookie fra siti diversi:
+serve il passaggio da Vercel o un dominio proprio). Fatte anche le migliorie
+dell'audit (`V2-029`, `SEC-003`…`SEC-009`): pacchetti del frontend, regole password, 404 sulle
+prenotazioni altrui, `.gitignore`/`.dockerignore`, su Neon l'utente `gestora_app` con soli permessi sui
+dati (usato da Azure; `neondb_owner` resta per migration e backup, `RUNBOOK.md` §6), `AllowedHosts` su
+Azure. **Prossimo passo: `V2-023-T08`**, rilascio `v3.0.0`.
+
+**Prima** (22-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
 sviluppata da Claude. Migration 10 `PrivacyEAccount`; informativa privacy e termini (`/privacy`,
 `/termini`); presa visione in registrazione e al primo accesso; recupero password con link a 2 ore;
 «Il mio account» (`/account`) con cambio password e cancellazione dell'account (prenotazioni passate
@@ -54,12 +86,7 @@ della sola migration 10), merge su `main` `a909ac9`; controllati l'immagine nuov
 per l'Admin, sviluppato da Claude e provato a vista da Fabio: commit `a569dee`, merge su `main`
 `839939c`, in produzione (nessuna migration). Dal log di Azure: il primo avvio dopo un rilascio
 fallisce e il sito riparte alla prima richiesta (comportamento noto, `RUNBOOK.md` §5).
-Lo stesso giorno **aperta la F4** (`V2-022`, modulo dei pareri, sviluppa Claude): passi `T02`…`T07`
-nel foglio *Task v3*. Sviluppati `T02` (backend, `POST /api/Pareri/invia`), `T03` (pagina `/pareri`)
-e `T04` (informativa con i pareri, versione `2026-10-27`). **Prossimo passo: `V2-022-T05`**, prova a
-vista (Fabio); al rilascio prima la variabile `Pareri__Destinatario` su Azure.
-
-**Prima** (22-26/10/2026): **chiuso il bug `V2-024`** (disponibilità), sviluppato da Claude. Con un
+Prima della F3 (22-26/10/2026) **chiuso il bug `V2-024`** (disponibilità), sviluppato da Claude. Con un
 tavolo da 8 occupato da 5 persone la verifica diceva «restano 3 posti», ma erano il resto di quel
 tavolo: la prenotazione poi falliva. Ora i posti rimasti sono il minore fra tetto residuo e gruppo
 più grande che i tavoli liberi accolgono (`AssegnazioneTavoli.GruppoMassimo`, decisione 8 precisata)
@@ -117,7 +144,10 @@ punti 1–4 della code review dell'08/10/2026 sono `V2-008`…`V2-011`; i punti 
 `V2-012`…`V2-014`, tutti in produzione. I rilasci li decide Fabio (`RUNBOOK.md` §5); `dev` non si usa
 più.
 
-Per dati su cui provare: `dotnet run -- --seed-sviluppo` da `GestoraWebApi`.
+Per dati su cui provare: `dotnet run -- --seed-sviluppo` da `GestoraWebApi` (casi limite, per
+mettere in difficoltà l'interfaccia). Per screenshot e dimostrazioni: `dotnet run -- --seed-vetrina`
+(una pizzeria credibile, tavoli assegnati dal motore vero; `V2-023`). Entrambi cancellano i dati di
+dominio locali e partono solo su un database di questa macchina.
 
 ---
 
@@ -274,6 +304,9 @@ originale con le motivazioni è in `docs/archivio/`.
     14/10/2026): riceve un link valido 24 ore e fino ad allora il login
     risponde 403. Gli account creati da un Admin (primo Admin del `/setup`, Staff) nascono già
     confermati. Le email partono via SMTP (Brevo); in locale finiscono nei log
+13. **Gestora non raccoglie dati sulla salute** (`V2-026`, 28/10/2026): allergie e intolleranze non
+    si scrivono nelle note della prenotazione, si comunicano al locale. Lo dicono il form e
+    l'informativa. Riaprire questa regola vuol dire consenso esplicito e informativa nuova
 
 ---
 

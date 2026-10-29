@@ -62,7 +62,7 @@ namespace GestoraWebApi.Development
         /// Rifiuta qualsiasi database che non sia su questa macchina. Un seed che cancella e
         /// riscrive non deve avere la possibilita' tecnica di toccare Neon (produzione).
         /// </summary>
-        private static void VerificaCheSiaLocale(string? connectionString)
+        internal static void VerificaCheSiaLocale(string? connectionString)
         {
             var host = new NpgsqlConnectionStringBuilder(connectionString).Host?.ToLowerInvariant();
 

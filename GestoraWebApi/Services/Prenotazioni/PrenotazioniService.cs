@@ -163,6 +163,7 @@ namespace GestoraWebApi.Services.Prenotazioni
                 // Prima stato e permessi si leggevano fuori: un annullamento arrivato nel mezzo
                 // veniva sovrascritto e la prenotazione tornava "Attiva".
                 var prenotazione = await LeggiConLockAsync(id, "Prenotazione non trovata.");
+                NascondiSeAltrui(prenotazione, "Prenotazione non trovata.");
 
                 if (prenotazione.Stato == StatoPrenotazione.InCorso
                     || prenotazione.Stato == StatoPrenotazione.Annullata
@@ -175,9 +176,6 @@ namespace GestoraWebApi.Services.Prenotazioni
                 // sotto un altro UserId), come previsto dai ruoli.
                 if (IsSelfServiceCliente())
                 {
-                    if (!string.Equals(prenotazione.UserId, userId, StringComparison.OrdinalIgnoreCase))
-                        throw new ForbiddenException("Non hai i permessi per modificare questa prenotazione.");
-
                     GuardCutoffAsync(prenotazione);
                     GuardLimiteOnline(dto.NumeroCoperti);
                 }
@@ -290,6 +288,7 @@ namespace GestoraWebApi.Services.Prenotazioni
             {
                 // AUD-M4: lettura e controlli dopo il lock sulla riga, come in UpdateAsync.
                 var prenotazione = await LeggiConLockAsync(id, "Prenotazione non trovata nel sistema.");
+                NascondiSeAltrui(prenotazione, "Prenotazione non trovata nel sistema.");
 
                 if (prenotazione.Stato == StatoPrenotazione.Completata)
                     throw new ConflictException("Non è possibile annullare una prenotazione già completata.");
@@ -309,13 +308,7 @@ namespace GestoraWebApi.Services.Prenotazioni
                     throw new ConflictException("La prenotazione è già passata: non si può più annullare.");
 
                 if (IsSelfServiceCliente())
-                {
-                    var userId = _httpContextAccessor.HttpContext.GetAuthenticatedUserId();
-                    if (!string.Equals(prenotazione.UserId, userId, StringComparison.OrdinalIgnoreCase))
-                        throw new ForbiddenException("Non hai i permessi per annullare questa prenotazione.");
-
                     GuardCutoffAsync(prenotazione);
-                }
 
                 prenotazione.Stato = StatoPrenotazione.Annullata;
 
@@ -555,6 +548,17 @@ namespace GestoraWebApi.Services.Prenotazioni
         {
             var user = _httpContextAccessor.HttpContext?.User;
             return user != null && !user.IsInRole(Roles.Admin) && !user.IsInRole(Roles.Staff);
+        }
+
+        // SEC-009 (V2-029): per il Cliente la prenotazione di un altro è "non trovata", come un Id
+        // inesistente e come in GetByIdAsync. Va chiamato subito dopo la lettura, prima dei controlli
+        // sullo stato: un 403, o un 409 sullo stato, diceva che quell'Id esiste e com'è messo.
+        private void NascondiSeAltrui(Prenotazione prenotazione, string messaggio)
+        {
+            if (IsSelfServiceCliente()
+                && !string.Equals(prenotazione.UserId, _httpContextAccessor.HttpContext.GetAuthenticatedUserId(),
+                                  StringComparison.OrdinalIgnoreCase))
+                throw new KeyNotFoundException(messaggio);
         }
 
         // RBAC-002: il Cliente può modificare/annullare una propria prenotazione self-service

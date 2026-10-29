@@ -1,5 +1,6 @@
 using GestoraWebApi.Auth;
 using GestoraWebApi.Enums;
+using GestoraWebApi.Infrastructure.Auth;
 using GestoraWebApi.Infrastructure.Exceptions;
 using GestoraWebApi.Models;
 using GestoraWebApi.Services.Account;
@@ -18,6 +19,7 @@ namespace GestoraWebApi.Tests.Services
         private readonly Mock<UserManager<ApplicationUser>> _userManager;
         private readonly Mock<ILogActivityService> _log = new();
         private readonly Mock<IEliminazioneAccountService> _eliminazione = new();
+        private readonly Mock<ITentativiAccesso> _tentativi = new();
         private readonly AccountService _service;
         private readonly ApplicationUser _utente = new()
         {
@@ -33,7 +35,7 @@ namespace GestoraWebApi.Tests.Services
             _userManager = new Mock<UserManager<ApplicationUser>>(
                 Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
             _userManager.Setup(m => m.FindByIdAsync("utente-1")).ReturnsAsync(_utente);
-            _service = new AccountService(_userManager.Object, _log.Object, _eliminazione.Object,
+            _service = new AccountService(_userManager.Object, _log.Object, _eliminazione.Object, _tentativi.Object,
                 NullLogger<AccountService>.Instance);
         }
 
@@ -61,37 +63,33 @@ namespace GestoraWebApi.Tests.Services
         [Fact]
         public async Task CambiaPassword_Ok_AzzeraITentativiERegistra()
         {
-            _userManager.Setup(m => m.IsLockedOutAsync(_utente)).ReturnsAsync(false);
             _userManager.Setup(m => m.CheckPasswordAsync(_utente, "Vecchia1!")).ReturnsAsync(true);
             _userManager.Setup(m => m.ChangePasswordAsync(_utente, "Vecchia1!", "Nuova1!pass")).ReturnsAsync(IdentityResult.Success);
-            _userManager.Setup(m => m.ResetAccessFailedCountAsync(_utente)).ReturnsAsync(IdentityResult.Success);
 
             var user = await _service.CambiaPasswordAsync("utente-1", "Vecchia1!", "Nuova1!pass", Ip);
 
             Assert.Same(_utente, user);
-            _userManager.Verify(m => m.ResetAccessFailedCountAsync(_utente), Times.Once);
+            _tentativi.Verify(t => t.Azzera("mario@example.com", Ip), Times.Once);
             _log.Verify(l => l.LogAsync("utente-1", It.IsAny<string>(), Ip), Times.Once);
         }
 
         [Fact]
         public async Task CambiaPassword_AttualeSbagliata_ContaIlTentativoEErroreSulCampo()
         {
-            _userManager.Setup(m => m.IsLockedOutAsync(_utente)).ReturnsAsync(false);
             _userManager.Setup(m => m.CheckPasswordAsync(_utente, "Sbagliata1!")).ReturnsAsync(false);
-            _userManager.Setup(m => m.AccessFailedAsync(_utente)).ReturnsAsync(IdentityResult.Success);
 
             var ex = await Assert.ThrowsAsync<ValidationException>(() =>
                 _service.CambiaPasswordAsync("utente-1", "Sbagliata1!", "Nuova1!pass", Ip));
 
             Assert.Equal("passwordAttuale", CampoErrore(ex));
-            _userManager.Verify(m => m.AccessFailedAsync(_utente), Times.Once);
+            _tentativi.Verify(t => t.RegistraErrore("mario@example.com", Ip), Times.Once);
             _userManager.Verify(m => m.ChangePasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task CambiaPassword_AccountBloccato_NonProvaNemmenoLaPassword()
         {
-            _userManager.Setup(m => m.IsLockedOutAsync(_utente)).ReturnsAsync(true);
+            _tentativi.Setup(t => t.Bloccato("mario@example.com", Ip)).Returns(true);
 
             var ex = await Assert.ThrowsAsync<ValidationException>(() =>
                 _service.CambiaPasswordAsync("utente-1", "Vecchia1!", "Nuova1!pass", Ip));
@@ -103,7 +101,6 @@ namespace GestoraWebApi.Tests.Services
         [Fact]
         public async Task CambiaPassword_NuovaRifiutataDaIdentity_ErroreSullaPassword()
         {
-            _userManager.Setup(m => m.IsLockedOutAsync(_utente)).ReturnsAsync(false);
             _userManager.Setup(m => m.CheckPasswordAsync(_utente, "Vecchia1!")).ReturnsAsync(true);
             _userManager.Setup(m => m.ChangePasswordAsync(_utente, "Vecchia1!", It.IsAny<string>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityErrorDescriber().PasswordRequiresDigit()));
@@ -118,7 +115,6 @@ namespace GestoraWebApi.Tests.Services
 
         private void PasswordGiusta(bool admin = false, int adminTotali = 1, params Prenotazione[] daServire)
         {
-            _userManager.Setup(m => m.IsLockedOutAsync(_utente)).ReturnsAsync(false);
             _userManager.Setup(m => m.CheckPasswordAsync(_utente, "Mia1!pass")).ReturnsAsync(true);
             _userManager.Setup(m => m.IsInRoleAsync(_utente, Roles.Admin)).ReturnsAsync(admin);
             _userManager.Setup(m => m.GetUsersInRoleAsync(Roles.Admin))
@@ -139,15 +135,13 @@ namespace GestoraWebApi.Tests.Services
         [Fact]
         public async Task Cancella_PasswordSbagliata_ErroreSulCampoNienteEliminato()
         {
-            _userManager.Setup(m => m.IsLockedOutAsync(_utente)).ReturnsAsync(false);
             _userManager.Setup(m => m.CheckPasswordAsync(_utente, "Sbagliata1!")).ReturnsAsync(false);
-            _userManager.Setup(m => m.AccessFailedAsync(_utente)).ReturnsAsync(IdentityResult.Success);
 
             var ex = await Assert.ThrowsAsync<ValidationException>(() =>
                 _service.CancellaAccountAsync("utente-1", "Sbagliata1!", Ip));
 
             Assert.Equal("password", CampoErrore(ex));
-            _userManager.Verify(m => m.AccessFailedAsync(_utente), Times.Once);
+            _tentativi.Verify(t => t.RegistraErrore("mario@example.com", Ip), Times.Once);
             _eliminazione.Verify(e => e.EliminaAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
         }
 

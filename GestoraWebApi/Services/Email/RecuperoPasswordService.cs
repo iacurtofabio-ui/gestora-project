@@ -36,12 +36,16 @@ namespace GestoraWebApi.Services.Email
         private readonly EmailSettings _settings;
         private readonly ILogger<RecuperoPasswordService> _logger;
 
+        private readonly ITentativiAccesso _tentativiAccesso;
+
         public RecuperoPasswordService(UserManager<ApplicationUser> userManager,
                                        IInvioEmail invioEmail,
                                        ILogActivityService logActivityService,
                                        IOptions<EmailSettings> settings,
+                                       ITentativiAccesso tentativiAccesso,
                                        ILogger<RecuperoPasswordService> logger)
         {
+            _tentativiAccesso = tentativiAccesso;
             _userManager = userManager;
             _invioEmail = invioEmail;
             _logActivityService = logActivityService;
@@ -118,6 +122,9 @@ namespace GestoraWebApi.Services.Email
                 user.EmailConfirmed = true;
                 await _userManager.UpdateAsync(user);
             }
+            // V2-027: il blocco ora è per email + indirizzo; le due righe di Identity sbloccano un
+            // account rimasto bloccato con il meccanismo di prima.
+            _tentativiAccesso.Azzera(user.Email, ip);
             await _userManager.ResetAccessFailedCountAsync(user);
             await _userManager.SetLockoutEndDateAsync(user, null);
 

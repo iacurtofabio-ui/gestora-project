@@ -101,7 +101,8 @@ export function messaggioErroreLogin(error: unknown): string {
     case 401:
       return 'Email o password non corrispondono a nessun account. Controlla e riprova.'
     case 423:
-      return 'Account bloccato per troppi tentativi sbagliati. Riprova tra 15 minuti.'
+      // V2-027: il blocco è per email + indirizzo di chi sbaglia, non per account.
+      return 'Troppi tentativi sbagliati da questo dispositivo. Riprova tra 15 minuti.'
     case 429:
       return 'Troppi tentativi in poco tempo. Attendi un minuto e riprova.'
     default:

@@ -332,9 +332,16 @@ export default function PrenotazioneModal({ isOpen, onClose, prenotazione, onCre
               id="prenotazione-note"
               {...register('note')}
               rows={3}
-              placeholder="Allergie, seggiolone, tavolo tranquillo…"
+              placeholder="Seggiolone, tavolo tranquillo, compleanno…"
+              aria-describedby="prenotazione-note-avviso"
               className="text-corpo w-full rounded-md border border-input bg-transparent px-2.5 py-1.5 outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
             />
+            {/* V2-026: allergie e intolleranze sono dati sulla salute (GDPR art. 9). Gestora non li
+                raccoglie: si comunicano al locale. Lo dice anche l'informativa. */}
+            <p id="prenotazione-note-avviso" className="text-nota text-muted-foreground">
+              Non scrivere qui dati sulla salute, come allergie o intolleranze: comunicali
+              direttamente al locale.
+            </p>
           </div>
 
           {/* Il verbo del pulsante e' quello dell'azione, non "Invia": chi legge sa gia' cosa

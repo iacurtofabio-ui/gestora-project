@@ -26,7 +26,7 @@ namespace GestoraWebApi.Controllers
         private readonly IJwtTokenGenerator _tokenGenerator;
         private readonly ILogger<AuthenticationUserController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ITentativiAccesso _tentativiAccesso;
         private readonly ILogActivityService _logActivityService;
         private readonly GestoraContext _context;
         private readonly IClock _clock;
@@ -38,7 +38,7 @@ namespace GestoraWebApi.Controllers
         public AuthenticationUserController(IJwtTokenGenerator tokenGenerator,
                                             ILogger<AuthenticationUserController> logger,
                                             UserManager<ApplicationUser> userManager,
-                                            SignInManager<ApplicationUser> signInManager,
+                                            ITentativiAccesso tentativiAccesso,
                                             ILogActivityService logActivityService,
                                             GestoraContext context,
                                             IClock clock,
@@ -55,7 +55,7 @@ namespace GestoraWebApi.Controllers
             _tokenGenerator = tokenGenerator;
             _logger = logger;
             _userManager = userManager;
-            _signInManager = signInManager;
+            _tentativiAccesso = tentativiAccesso;
             _logActivityService = logActivityService;
             _context = context;
         }
@@ -195,38 +195,45 @@ namespace GestoraWebApi.Controllers
             // prova, non necessariamente di un nostro utente: registrarla significa conservare
             // dati personali di terzi a ogni tentativo, anche di un attacco a dizionario.
             // Per correlare i tentativi basta l'IP; a login riuscito si usa l'UserId.
+            var ip = HttpContext.GetIpAddress();
             _logger.LogInformation("[{Controller}] - [{Method}]: Tentativo di login da {Ip}",
-                nameof(AuthenticationUserController), nameof(Login), HttpContext.GetIpAddress());
+                nameof(AuthenticationUserController), nameof(Login), ip);
+
+            // V2-027: il blocco riguarda email + indirizzo di chi sbaglia, non l'account. Prima
+            // (blocco di Identity) bastavano 5 password sbagliate apposta per chiudere fuori l'Admin
+            // per 15 minuti. Il controllo viene prima di cercare l'utente: vale anche per le email
+            // che non esistono, così la risposta non dice quali sono registrate.
+            if (_tentativiAccesso.Bloccato(request.Email, ip))
+            {
+                _logger.LogWarning("[{Controller}] - [{Method}]: Login bloccato per troppi tentativi falliti da {Ip}",
+                    nameof(AuthenticationUserController), nameof(Login), ip);
+
+                return StatusCode(StatusCodes.Status423Locked,
+                    "Troppi tentativi sbagliati da questo dispositivo. Riprova tra 15 minuti.");
+            }
 
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
+                _tentativiAccesso.RegistraErrore(request.Email, ip);
                 _logger.LogWarning("[{Controller}] - [{Method}]: Accesso non autorizzato da {Ip} (utente inesistente)",
-                    nameof(AuthenticationUserController), nameof(Login), HttpContext.GetIpAddress());
+                    nameof(AuthenticationUserController), nameof(Login), ip);
 
                 return Unauthorized("Credenziali non valide.");
             }
 
-            // CheckPasswordSignInAsync (invece di CheckPasswordAsync) tiene traccia dei
-            // tentativi falliti e applica il lockout configurato in AuthenticationExtensions.
-            var signInResult = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
-
-            if (signInResult.IsLockedOut)
+            // CheckPasswordAsync e non SignInManager.CheckPasswordSignInAsync: quello rifiuterebbe
+            // comunque un account con il blocco di Identity attivo, che qui non si usa più.
+            if (!await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                _logger.LogWarning("[{Controller}] - [{Method}]: Account {UserId} bloccato per troppi tentativi falliti (da {Ip})",
-                    nameof(AuthenticationUserController), nameof(Login), user.Id, HttpContext.GetIpAddress());
-
-                return StatusCode(StatusCodes.Status423Locked,
-                    "Account temporaneamente bloccato per troppi tentativi falliti. Riprova più tardi.");
-            }
-
-            if (!signInResult.Succeeded)
-            {
+                _tentativiAccesso.RegistraErrore(request.Email, ip);
                 _logger.LogWarning("[{Controller}] - [{Method}]: Accesso non autorizzato per {UserId} (password errata, da {Ip})",
-                    nameof(AuthenticationUserController), nameof(Login), user.Id, HttpContext.GetIpAddress());
+                    nameof(AuthenticationUserController), nameof(Login), user.Id, ip);
 
                 return Unauthorized("Credenziali non valide.");
             }
+
+            _tentativiAccesso.Azzera(request.Email, ip);
 
             // V2-003: senza email confermata non si entra. Il controllo viene DOPO la password,
             // cosi' chi non la conosce non scopre se un indirizzo e' registrato. Il codice e'

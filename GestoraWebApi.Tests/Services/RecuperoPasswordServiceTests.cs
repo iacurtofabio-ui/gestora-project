@@ -22,6 +22,7 @@ namespace GestoraWebApi.Tests.Services
         private readonly Mock<UserManager<ApplicationUser>> _userManager;
         private readonly Mock<IInvioEmail> _invioEmail = new();
         private readonly Mock<ILogActivityService> _log = new();
+        private readonly Mock<ITentativiAccesso> _tentativi = new();
         private readonly RecuperoPasswordService _service;
 
         public RecuperoPasswordServiceTests()
@@ -31,7 +32,7 @@ namespace GestoraWebApi.Tests.Services
 
             var settings = Options.Create(new EmailSettings { UrlFrontend = "https://gestora.example/" });
             _service = new RecuperoPasswordService(_userManager.Object, _invioEmail.Object, _log.Object,
-                settings, NullLogger<RecuperoPasswordService>.Instance);
+                settings, _tentativi.Object, NullLogger<RecuperoPasswordService>.Instance);
         }
 
         private static ApplicationUser Utente(bool confermato = true) => new()
@@ -105,6 +106,7 @@ namespace GestoraWebApi.Tests.Services
             Assert.True(ok);
             Assert.True(utente.EmailConfirmed);
             _userManager.Verify(m => m.SetLockoutEndDateAsync(utente, null), Times.Once);
+            _tentativi.Verify(t => t.Azzera(utente.Email, Ip), Times.Once);
             _log.Verify(l => l.LogAsync("utente-1", It.IsAny<string>(), Ip), Times.Once);
         }
 

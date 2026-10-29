@@ -194,7 +194,22 @@ public class PrenotazioniServiceTests
         _prenotazioniRepoMock.Setup(r => r.GetTrackedByIdAsync(1)).ReturnsAsync(prenotazione);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ForbiddenException>(() => _service.AnnullaPrenotazioneAsync(1));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.AnnullaPrenotazioneAsync(1));
+    }
+
+    /// <summary>
+    /// SEC-009 (V2-029): la prenotazione di un altro, già completata, deve risultare "non trovata"
+    /// anche al Cliente che prova ad annullarla. Prima il controllo sullo stato veniva prima di quello
+    /// sul proprietario, e il 409 diceva che quell'Id esiste e com'è messo.
+    /// </summary>
+    [Fact]
+    public async Task AnnullaPrenotazioneAsync_ClienteSuPrenotazioneAltruiCompletata_NonTrovataNonConflitto()
+    {
+        SetUserAsCliente("user-test-123");
+        var prenotazione = new Prenotazione { Id = 1, NumeroCoperti = 2, Stato = StatoPrenotazione.Completata, UserId = "altro-utente" };
+        _prenotazioniRepoMock.Setup(r => r.GetTrackedByIdAsync(1)).ReturnsAsync(prenotazione);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.AnnullaPrenotazioneAsync(1));
     }
 
     [Fact]
@@ -360,7 +375,7 @@ public class PrenotazioniServiceTests
         SetUserAsCliente("user-test-123");
         var (_, dto) = ArrangeUpdateValido(ownerUserId: "altro-utente");
 
-        await Assert.ThrowsAsync<ForbiddenException>(() => _service.UpdateAsync(1, dto));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAsync(1, dto));
     }
 
     // ─── GetByIdAsync — REV-034 (dettaglio al Cliente proprietario) ────────────
@@ -1184,7 +1199,7 @@ public class PrenotazioniServiceTests
         SetUser("tizio", ruolo);
         var (_, dto) = ArrangeUpdateValido(ownerUserId: "un-altro");
 
-        await Assert.ThrowsAsync<ForbiddenException>(() => _service.UpdateAsync(1, dto));
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _service.UpdateAsync(1, dto));
     }
 
     /// <summary>

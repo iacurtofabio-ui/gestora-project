@@ -10,6 +10,34 @@
     />
     <title>Gestora — prenotazioni e gestione sala</title>
     <!--
+      Anteprima quando il link si condivide (WhatsApp, LinkedIn, Telegram, X...). Gli indirizzi
+      devono essere assoluti: chi genera l'anteprima non conosce la pagina da cui parte il link.
+      L'immagine (1200x630) sta in public/; se cambia dominio, cambiano anche questi indirizzi.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gestora" />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:url" content="https://gestora-project-xi.vercel.app/" />
+    <meta property="og:title" content="Gestora — prenota il tuo tavolo, senza telefonate" />
+    <meta
+      property="og:description"
+      content="Prenotazioni e gestione della sala per ristoranti, pub e pizzerie. Il tavolo lo assegna Gestora."
+    />
+    <meta property="og:image" content="https://gestora-project-xi.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Il logo di Gestora accanto alla dashboard «Oggi in sala» con le fasce di pranzo e cena"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Gestora — prenota il tuo tavolo, senza telefonate" />
+    <meta
+      name="twitter:description"
+      content="Prenotazioni e gestione della sala per ristoranti, pub e pizzerie. Il tavolo lo assegna Gestora."
+    />
+    <meta name="twitter:image" content="https://gestora-project-xi.vercel.app/og-image.png" />
+    <!--
       Applica il tema PRIMA che React parta.
       Senza questo, al caricamento si vede un lampo bianco: il browser disegna la pagina con i
       colori chiari, poi React monta, legge la preferenza e la ripassa a scuro. Lo script e'
