@@ -246,10 +246,11 @@ processo. Il frontend si verifica aprendo `https://gestora-project-xi.vercel.app
 Poi login dal frontend con i tre ruoli.
 
 **Controllo automatico (`V2-018`).** Un monitor **UptimeRobot** (account di Fabio, piano gratuito)
-chiama `/health` ogni 30 minuti e manda un'email se non risponde o risponde con un errore. Dopo un
-rilascio, il monitor deve tornare verde da solo. Il risveglio ogni 30 minuti fa partire anche i job
-notturni entro mezz'ora dall'orario previsto (vedi *Job notturni* in `BACKLOG.md`, *Rischi
-accettati*). Per provare l'avviso senza toccare la produzione: un monitor temporaneo su un
+chiama `/health` ogni **5 minuti** (dal 29/10/2026, prima ogni 30) e manda un'email se non risponde
+o risponde con un errore. Dopo un rilascio, il monitor deve tornare verde da solo. Una chiamata ogni
+5 minuti tiene acceso il backend, che sul piano F1 si spegne dopo circa 20 minuti senza richieste:
+così il primo visitatore non aspetta e i job notturni partono all'ora prevista (vedi *Job notturni*
+in `BACKLOG.md`, *Rischi accettati*). Per provare l'avviso senza toccare la produzione: un monitor temporaneo su un
 indirizzo che non esiste (es. `/health-prova-inesistente`, risponde 404), da eliminare dopo
 l'email.
 
@@ -383,8 +384,11 @@ sessione remota.
 ### Il backup di produzione (`V2-018`)
 
 **Quando.** Sempre prima di una migration, di un reset o di un rilascio che tocca il database
-(§3, §4). Con il locale aperto, anche **una volta a settimana**. Il primo vero backup si fa al
-rilascio della F2, prima della migration 9.
+(§3, §4). Con la produzione aperta (dal 29/10/2026), anche **una volta al mese** (decisione di
+Fabio: il portale all'inizio è poco usato; da portare a settimanale quando le prenotazioni
+crescono). Il promemoria è un passo nel foglio *Task v3* del tracker: fatto il backup, si segna
+*Fatto* e si aggiunge quello del mese dopo. Il primo vero backup è del 20/10/2026, prima della
+migration 9.
 
 **Dove.** Fuori dal progetto, in
 `..\Gestora documentazione\Gestora_backup\` (accanto alla cartella del progetto; i comandi partono da lì), con il

@@ -169,13 +169,20 @@ sfruttabile da remoto). La versione che lo risolve ha una licenza a pagamento ol
 fatturato, e non si vuole pagare nessuna licenza. Da riaprire solo se si cambia libreria di
 mapping.
 
+**`deepmerge` 4.3.1 nel frontend**, avviso «low» di Dependabot (29/10/2026). Lo porta solo `shadcn`,
+lo strumento che aggiunge i componenti al progetto: è fra le dipendenze di sviluppo, non entra nella
+build e non arriva al browser (`npm audit --omit=dev`: 0 avvisi). La 4.3.1 è l'ultima versione
+uscita, non c'è una correzione da installare. Da riaprire quando `shadcn` o `deepmerge` si aggiornano.
+
 **"Una prenotazione al giorno" per il Cliente è un controllo dell'applicazione.** Con due
 richieste parallele su fasce diverse si può aggirare. Rischio accettato (decisione di prodotto
 10); non riguarda il doppio tavolo, che è invece protetto da un vincolo vero nel database.
 
-**Job notturni al primo accesso del giorno.** Sul piano gratuito F1 di Azure l'applicazione si
-spegne senza traffico, quindi i job Quartz partono quando arriva la prima richiesta. Per farli
-partire all'ora giusta serve «Always On», cioè un piano a pagamento.
+**Job notturni senza «Always On».** Sul piano gratuito F1 di Azure l'applicazione si spegne dopo
+circa 20 minuti senza traffico, e i job Quartz partono solo ad applicazione accesa. Dal 29/10/2026
+UptimeRobot chiama `/health` ogni 5 minuti e la tiene sveglia, quindi i job partono all'ora giusta.
+Se UptimeRobot si ferma, i job tornano a partire alla prima richiesta del mattino; la garanzia vera
+è «Always On», cioè un piano a pagamento.
 
 **Token di accesso in `localStorage`, fino alla v3.1** (`V2-028`). Uno script estraneo nella pagina
 potrebbe leggerlo; la CSP rigida del frontend (solo script del sito, nessuno script scritto nella

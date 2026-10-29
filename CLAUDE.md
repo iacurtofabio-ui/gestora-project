@@ -33,7 +33,7 @@ con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
 | Test | **492** backend (xUnit) + **133** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
-| Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: 1 avviso «low». AutoMapper 12.0.1 accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
+| Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
 | Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v3.0.0`**, 29/10/2026, merge con la PR #8 `8ab0db0`) |
 
 **Ultima cosa fatta** (29/10/2026): **rilascio `v3.0.0`** e chiusura della F5 (`V2-023-T08`, `T09`),
