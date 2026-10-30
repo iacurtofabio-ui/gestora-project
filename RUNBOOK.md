@@ -648,6 +648,12 @@ PowerShell 5.1 lo legge con la codifica sbagliata e gli accenti si rompono.
 - **Il middleware di Vercel non gira in locale.** `npm run dev` usa il proxy di Vite; il middleware
   si prova solo su un'anteprima o in produzione. Senza `API_AZURE` o `INOLTRO_SEGRETO` risponde 500
   «Configurazione mancante sul sito» a ogni chiamata.
+- **Ripubblicare un'anteprima può finire in produzione.** Il 30/10/2026 il *Redeploy* della
+  pubblicazione di `v2` è andato su Production: frontend nuovo con backend vecchio, nessuno riusciva
+  a entrare finché non è stata rimessa la pubblicazione di `main` (*Promote to Production*). Prima di
+  confermare un *Redeploy* o un *Promote*, controllare l'ambiente scritto nella finestra: per le prove
+  dev'essere **Preview**. Dopo, verificare che il sito di produzione chiami ancora il backend giusto
+  (F12 → *Network*).
 - **Le variabili `VITE_...` restano di tipo *Config* (o *Plaintext*), non *Secret*** (oggi solo
   `VITE_MANUTENZIONE`): un *Secret* non arriva alla build nel modo che Vite si aspetta.
 - **SCM Basic Auth necessaria per il webhook di distribuzione continua.** Senza, Azure non
