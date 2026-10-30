@@ -89,7 +89,9 @@ Gestora/
 └── Gestora.sln            solution: API + tests
 ```
 
-Security in short: JWT authentication with role-based authorization, rate limits on login,
+Security in short: JWT authentication with role-based authorization, the token kept in an
+`HttpOnly` cookie (never readable by JavaScript) with double-submit CSRF protection, API calls
+proxied through the frontend's own domain by a Vercel middleware, rate limits on login,
 sign-up, email confirmation, password reset, availability checks and feedback, a 15-minute block after 5 wrong passwords, applied to the address that failed rather than to the account (so nobody can lock the Admin out), security
 headers on both API and frontend (CSP, HSTS), Data Protection keys persisted in the database.
 
@@ -128,8 +130,9 @@ cases for testing the interface). Both **wipe** the local bookings, tables and s
 run against a database that is not on `localhost`. Sign in as `admin@gestora.local` /
 `Sviluppo1!`.
 
-**2. Frontend** — from `gestora-frontend/`, create a `.env.local` file containing
-`VITE_API_URL=http://localhost:5099/api`, then:
+**2. Frontend** — from `gestora-frontend/` (the Vite dev server forwards `/api` to the backend on
+`localhost:5099`; sign in with Chrome, Edge or Firefox, since Safari refuses `Secure` cookies on
+`http://localhost`):
 
 ```bash
 npm install

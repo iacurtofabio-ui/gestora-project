@@ -58,8 +58,8 @@ namespace GestoraWebApi.Controllers
         /// e' esattamente il giro che nel settembre 2026 e' costato tre deploy e tre giorni.
         /// </para>
         /// <para>
-        /// Riservato all'Admin e limitato alla <b>richiesta corrente</b>: mostra solo i dati di
-        /// chi sta chiamando, non il traffico di altri utenti.
+        /// V2-028: dice anche se la richiesta è passata da Vercel con la parola segreta giusta; in
+        /// quel caso l'indirizzo usato è <c>X-Real-IP</c>, non l'ultimo anello della catena.
         /// </para>
         /// <para>
         /// Riservato all'Admin e volutamente limitato alla <b>richiesta corrente</b>: mostra solo
@@ -78,6 +78,9 @@ namespace GestoraWebApi.Controllers
                 // ⬅️ Il valore che finisce davvero nell'audit trail e nella partizione del
                 // rate limit: e' quello che deve corrispondere all'indirizzo di chi chiama.
                 indirizzoUsatoDallApplicazione = IndirizzoClient.Ottieni(HttpContext),
+
+                // V2-028: true se InoltroVercelMiddleware ha riconosciuto la parola segreta.
+                passatoDaVercel = HttpContext.Items.ContainsKey(IndirizzoClient.ChiaveIndirizzoVerificato),
 
                 // Quello che vedrebbe l'applicazione senza la lettura esplicita dell'header:
                 // dietro il proxy e' il suo indirizzo, uguale per tutti i client.

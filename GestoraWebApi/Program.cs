@@ -167,6 +167,17 @@ builder.Services.AddOptions<LimitiRichiesteSettings>()
 builder.Services.AddOptions<ManutenzioneSettings>()
     .Bind(builder.Configuration.GetSection(ManutenzioneSettings.Sezione));
 
+// V2-028: fuori da Development la parola segreta di Vercel è obbligatoria. Senza, il backend non
+// riconoscerebbe le richieste passate da Vercel e vedrebbe tutti con l'indirizzo di Vercel: i limiti
+// di richieste e il blocco per indirizzo colpirebbero tutti gli utenti insieme.
+builder.Services.AddOptions<InoltroVercelSettings>()
+    .Bind(builder.Configuration.GetSection(InoltroVercelSettings.Sezione))
+    .Validate(s => builder.Environment.IsDevelopment() ? s.Segreto.Length is 0 or >= 32 : s.Segreto.Length >= 32,
+        "Configurazione non valida: InoltroVercel:Segreto deve avere almeno 32 caratteri (obbligatorio fuori da Development).")
+    .Validate(s => !s.BloccaChiamateDirette || s.Segreto.Length > 0,
+        "Configurazione non valida: InoltroVercel:BloccaChiamateDirette richiede InoltroVercel:Segreto.")
+    .ValidateOnStart();
+
 // V2-003: l'indirizzo del frontend serve per i link nelle email. Fuori da Development l'Host SMTP
 // e' obbligatorio: senza, nessuno potrebbe confermare l'email e registrarsi sarebbe inutile,
 // quindi l'app non parte (meglio un errore all'avvio che utenti bloccati in silenzio).
@@ -546,6 +557,14 @@ app.UseCors("FrontendPolicy");
 app.UseMiddleware<ManutenzioneMiddleware>();
 
 //app.UseHttpsRedirection(); (verificare se serve abilitare in produzione)
+
+// V2-028: riconosce le richieste passate da Vercel (parola segreta) e ne prende l'indirizzo vero.
+// Prima dei limiti di richieste e dell'autenticazione, che usano l'indirizzo.
+app.UseMiddleware<InoltroVercelMiddleware>();
+
+// V2-028: chi scrive con il cookie di sessione deve rimandare anche il valore del cookie CSRF
+// nell'header. Prima dell'autenticazione: una richiesta rifiutata non arriva a leggere il token.
+app.UseMiddleware<ProtezioneCsrfMiddleware>();
 
 app.UseAuthentication();
 

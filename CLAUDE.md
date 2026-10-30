@@ -5,18 +5,17 @@
 
 ---
 
-## 1. Stato — aggiornato al 28/10/2026
+## 1. Stato — aggiornato al 29/10/2026
 
-**Verso la v3.0.0, production ready** (decisione del 15/10/2026): Gestora va resa pronta per
-chiunque, con privacy, sicurezza, modulo dei pareri e vetrina. Piano in sei fasi (F0-F5:
-`V2-016`…`V2-019`, `V2-022`, `V2-023` in `BACKLOG.md`), nello
-[studio di fattibilità](https://claude.ai/code/artifact/f31f316c-733c-4a5e-a93f-2f139c0518c1):
-circa 37 ore a 3-4 ore a settimana, fino a fine gennaio 2027. La v2 è chiusa con il tag `v2.1.0`
-e la produzione è in **«portale in manutenzione»** dal 15/10/2026 fino al rilascio `v3.0.0`
-(`RUNBOOK.md` §5). **Il piano si segue dal foglio *Task v3* del tracker** (§8): il prossimo passo è in
-cima alla Dashboard.
-A v3.0.0 chiusa si decide se fare la **v3.1.0**, una demo interattiva `/demo` per i visitatori
-(nota in `BACKLOG.md`).
+**Gestora v3.0.0 è in produzione dal 29/10/2026**, production ready: privacy, sicurezza, modulo
+dei pareri e vetrina. Il piano in sei fasi (F0-F5, deciso il 15/10/2026, nello
+[studio di fattibilità](https://claude.ai/code/artifact/f31f316c-733c-4a5e-a93f-2f139c0518c1))
+stimava 37 ore fino a fine gennaio 2027: è chiuso in due settimane. **Il lavoro si segue dal foglio
+*Task v3* del tracker** (§8): il prossimo passo è in cima alla Dashboard.
+**v3.1.0 decisa il 30/10/2026** (`V3.1-T01`): prima `V2-028` (token in cookie `HttpOnly`, chiamate
+che passano da Vercel, sviluppa Claude), poi la demo `/demo` (`V2-030`), poi il tag. `V2-028` è
+sviluppata su `v2` (30/10/2026, non ancora committata). **Prossimo passo: `V2-028-T09`**, la prova a
+vista in locale (Fabio); poi il commit, la prova su un'anteprima Vercel (`T12`) e il rilascio.
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -24,22 +23,40 @@ a .NET 9 (10/11/2026).
 servizio: le segnalazioni che arriveranno da lì, insieme alle nuove richieste, sono il lavoro della
 v2 (vedi §4).
 
-**Produzione chiusa per manutenzione** dal 15/10/2026: il sito mostra solo «Gestora è in
-manutenzione», ogni `/api` risponde 503, `/health` risponde `Healthy` (variabili
-`VITE_MANUTENZIONE` su Vercel e `Manutenzione__Attiva` su Azure). Il primo avvio (`/setup`) non è
-stato fatto e su Neon non ci sono zone, tavoli, fasce né prenotazioni: si fa al rilascio `v3.0.0`.
+**Produzione aperta dal 29/10/2026**: primo Admin creato da `/setup`, sala configurata, i dati su
+Neon sono veri. Il «portale in manutenzione» (dal 15/10 al 29/10/2026) resta pronto: si riaccende
+con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md` §5).
 
 | | |
 |---|---|
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
-| Test | **492** backend (xUnit) + **133** frontend (Vitest), tutti verdi |
+| Test | **527** backend (xUnit) + **139** frontend (Vitest) su `v2`, tutti verdi (in produzione 492 + 133) |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
-| Vulnerabilità note nelle librerie | 1 — AutoMapper 12.0.1, accettata (vedi `BACKLOG.md`, *Rischi accettati*) |
-| Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v2.1.0`**, 15/10/2026, chiusura della v2; le fasi della v3 vanno su `main` senza tag fino a `v3.0.0`) |
+| Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
+| Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v3.0.0`**, 29/10/2026, merge con la PR #8 `8ab0db0`) |
 
-**Ultima cosa fatta** (27/10/2026): **chiusa la F4 del piano v3** (`V2-022`, modulo dei pareri),
+**Ultima cosa fatta** (30/10/2026): **`V2-028` sviluppata** (passi `T02`…`T08`, sviluppa Claude),
+su `v2` senza commit. Misurata con Fabio la catena degli indirizzi attraverso Vercel (`T02`). Il token
+sta nel cookie `HttpOnly` `__Host-gestora-sessione` (`CookieSessione`); le risposte di login,
+rinnovo e cambio password danno `SessioneDTO` senza token; nuovi `GET sessione` e `POST logout`.
+Protezione CSRF a doppio invio (`CookieCsrf`, `ProtezioneCsrfMiddleware`: 400 senza l'header
+`X-XSRF-TOKEN`). Parola segreta di Vercel (`InoltroVercelMiddleware`, `InoltroVercel:Segreto`
+obbligatoria fuori da Development): solo con quella l'indirizzo è `X-Real-IP`; blocco delle chiamate
+dirette ad Azure dietro `InoltroVercel:BloccaChiamateDirette`, spento. Frontend: `middleware.ts` di
+Vercel gira `/api` ad Azure, proxy di Vite in locale, niente `localStorage`, `VITE_API_URL` tolta.
+Provato dal vivo in locale con curl e nel browser. Variabili e ordine del rilascio in `RUNBOOK.md` §5.
+
+**Rilascio `v3.0.0`** (29/10/2026) e chiusura della F5 (`V2-023-T08`, `T09`),
+eseguiti da Fabio con la scaletta di Claude. Backup con un branch di Neon (`backup-2026-10-29`),
+merge `v2` → `main` con la PR #8 (`8ab0db0`), nessuna migration; manutenzione spenta prima su Vercel
+e poi su Azure, subito dopo il `/setup` del primo Admin; sala configurata e **registrazione completa
+provata con un'email vera** (in sospeso dal `V2-003`). Tag `v3.0.0` e release su GitHub, sezione
+*About* con descrizione e link al sito. Controlli finali superati (header, `robots.txt`,
+`sitemap.xml`, anteprima social, UptimeRobot).
+
+**F4** (27/10/2026): **chiusa la F4 del piano v3** (`V2-022`, modulo dei pareri),
 sviluppata da Claude. Pagina pubblica `/pareri` (link dalla vetrina e dal menu utente) e
 `POST /api/Pareri/invia`: il parere arriva via email a `Pareri:Destinatario` (Brevo) e non si salva nel
 database; campo trappola contro i programmi automatici; limite di **2 pareri in 30 giorni per
@@ -49,7 +66,7 @@ su `v2`. Rilascio: prima la variabile `Pareri__Destinatario` su Azure, poi merge
 controllati l'immagine nuova scaricata, `/health` Healthy, `/api` ancora 503, Vercel *Ready*. Nessuna
 migration.
 
-**F5 in corso** (28/10/2026, `V2-023`, vetrina e rilascio `v3.0.0`, sviluppa Claude): passi nel
+**F5** (28-29/10/2026, `V2-023`, vetrina e rilascio `v3.0.0`, sviluppa Claude): passi nel
 foglio *Task v3*. Fatti `T02`…`T05`: `README.md` in inglese con screenshot (`docs/screenshots/`, dati
 del nuovo `--seed-vetrina`), `LICENSE` «All rights reserved» (codice solo da guardare), `CHANGELOG.md`,
 anteprima social (`og-image.png`, tag `og:`/`twitter:`), `robots.txt` e `sitemap.xml` (indicizzate
@@ -60,7 +77,7 @@ documenti di lavoro restano pubblici. Tolto il doppione `GestoraWebApi/Gestora.s
 Commit `d4dea65` su `v2`. Lo stesso giorno **audit di sicurezza** (`SEC-001`…`SEC-009`, esito in
 chat): nessun segreto attivo esposto; da lì `V2-026` (niente dati sulla salute nelle note, fatto) e
 due rischi prima accettati, riaperti da Fabio e da fare **prima** della `v3.0.0`: `V2-027` (blocco
-dell'Admin) e `V2-028` (token in cookie `HttpOnly`). Restano da valutare `SEC-003`…`SEC-009`.
+dell'Admin) e `V2-028` (token in cookie `HttpOnly`).
 Il 29/10/2026 fatto `V2-027` (sviluppa Claude): le password sbagliate si contano per email +
 indirizzo (`TentativiAccesso`), non più per account; provato dal vivo (l'indirizzo che sbaglia riceve
 423, l'Admin da un altro indirizzo entra). Prove a vista di Fabio superate (`T06`, `V2-026`, `V2-027`).
@@ -69,9 +86,9 @@ serve il passaggio da Vercel o un dominio proprio). Fatte anche le migliorie
 dell'audit (`V2-029`, `SEC-003`…`SEC-009`): pacchetti del frontend, regole password, 404 sulle
 prenotazioni altrui, `.gitignore`/`.dockerignore`, su Neon l'utente `gestora_app` con soli permessi sui
 dati (usato da Azure; `neondb_owner` resta per migration e backup, `RUNBOOK.md` §6), `AllowedHosts` su
-Azure. **Prossimo passo: `V2-023-T08`**, rilascio `v3.0.0`.
+Azure (commit `5ff448e`). Poi il rilascio, sopra.
 
-**Prima** (22-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
+**F3** (22-27/10/2026): **chiusa la F3 del piano v3** (`V2-019`, privacy e account),
 sviluppata da Claude. Migration 10 `PrivacyEAccount`; informativa privacy e termini (`/privacy`,
 `/termini`); presa visione in registrazione e al primo accesso; recupero password con link a 2 ore;
 «Il mio account» (`/account`) con cambio password e cancellazione dell'account (prenotazioni passate
@@ -206,7 +223,9 @@ solo).
 
 **React Router v7** (attenzione: qualsiasi nota che parli di v6 è sbagliata), **TanStack Query
 v5** per le chiamate al server, **React Hook Form + Zod** per i form, **shadcn/ui + Tailwind CSS
-v4** per l'aspetto, **Axios** con un intercettore che allega il token.
+v4** per l'aspetto, **Axios** verso `/api` sullo stesso sito. Il token sta in un cookie
+`HttpOnly` che JavaScript non legge (`V2-028`); Axios rimanda il cookie CSRF nell'header
+`X-XSRF-TOKEN`. Su Vercel `/api` passa da `gestora-frontend/middleware.ts`, in locale dal proxy di Vite.
 Tavolozza propria (un solo blu di marca, neutri freddi) con tema chiaro/scuro, verificata per
 leggibilità con `gestora-frontend/scripts/contrasto.mjs`. Direzione visiva ispirata a Docker Hub
 (barra superiore fissa, bordi sottili, raggio contenuto), carattere Inter.
@@ -214,23 +233,23 @@ Test con **Vitest + Testing Library**. Deploy su **Vercel**, che ripubblica da s
 su `main` che tocca `gestora-frontend/**`.
 
 **`/` è pubblica**: presenta il locale e lascia controllare la disponibilità senza registrarsi.
-⚠️ Su quella pagina non c'è nessun token: gli unici endpoint chiamabili sono `check-disponibilita`
+⚠️ Su quella pagina non c'è nessuna sessione: gli unici endpoint chiamabili sono `check-disponibilita`
 e `limiti-prenotazione`.
 
 ### Due ambienti separati in modo stabile
 
 - **Locale**: frontend su `localhost:5173`, backend su `localhost:5099`, database PostgreSQL
-  sulla macchina. Il frontend locale legge `.env.local` (non versionato).
-- **Produzione**: Vercel (frontend) + Azure App Service (backend) + Neon (database). **Non legge
-  mai** `.env.local`: usa la propria variabile `VITE_API_URL` impostata nel pannello Vercel (deve
-  essere di tipo *Config*, non *Secret* — vedi `RUNBOOK.md` §8).
+  sulla macchina. Il proxy di Vite gira `/api` al backend locale (`vite.config.ts`).
+- **Produzione**: Vercel (frontend) + Azure App Service (backend) + Neon (database). Il middleware
+  di Vercel gira `/api` ad Azure, all'indirizzo della variabile `API_AZURE`, con la parola segreta
+  `INOLTRO_SEGRETO` (`RUNBOOK.md` §5). **Non legge mai** `.env.local`.
 
 Cambiare `.env.local` non ha nessun effetto sulla produzione. Aprire `localhost:5173` mostra
 sempre i dati del database locale: è voluto.
 
-⚠️ La produzione non è ancora in uso (vedi §1), ma il locale può fare il primo avvio in qualsiasi
-momento e da lì i dati sono veri: niente reset del database di produzione e niente prove "sporche"
-su Neon senza averlo deciso insieme.
+⚠️ La produzione è aperta dal 29/10/2026 (vedi §1) e i dati su Neon sono veri: niente reset del
+database di produzione e niente prove "sporche" su Neon senza averlo deciso insieme. Prima di ogni
+migration, un backup (`RUNBOOK.md` §6).
 
 ---
 

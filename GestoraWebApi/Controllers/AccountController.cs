@@ -2,6 +2,7 @@ using GestoraWebApi.Extensions;
 using GestoraWebApi.Infrastructure.Auth;
 using GestoraWebApi.Services.Account;
 using GestoraWebApi.Services.Account.DTOs;
+using GestoraWebApi.Services.Auth.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -39,20 +40,21 @@ namespace GestoraWebApi.Controllers
         /// <summary>
         /// Cancellazione del proprio account, confermata con la password. 409 se ci sono prenotazioni
         /// da servire o se è l'ultimo Admin. Il token in uso smette di valere da solo: l'utente non
-        /// esiste più e OnTokenValidated lo respinge.
+        /// esiste più e OnTokenValidated lo respinge. V2-028: si toglie anche il cookie.
         /// </summary>
         [HttpPost("cancella-account")]
         public async Task<IActionResult> CancellaAccount(CancellaAccountDTO request)
         {
             await _accountService.CancellaAccountAsync(User.GetAuthenticatedUserId(), request.Password,
                 HttpContext.GetIpAddress());
+            CookieSessione.Cancella(Response);
             return NoContent();
         }
 
         /// <summary>
         /// Cambio password con quella attuale. Le altre sessioni si chiudono (security stamp nuovo);
-        /// questa continua con il token restituito, che conserva l'inizio della sessione: il limite
-        /// delle 12 ore dal login resta quello di prima.
+        /// questa continua con il token nuovo (V2-028: nel cookie), che conserva l'inizio della
+        /// sessione: il limite delle 12 ore dal login resta quello di prima.
         /// </summary>
         [HttpPost("cambia-password")]
         public async Task<IActionResult> CambiaPassword(CambiaPasswordDTO request)
@@ -67,7 +69,8 @@ namespace GestoraWebApi.Controllers
                 ? _tokenGenerator.GenerateToken(user.Id, user.Email!, roles, stamp)
                 : _tokenGenerator.GenerateToken(user.Id, user.Email!, roles, stamp, inizioSessione.Value);
 
-            return Ok(new { Email = user.Email, Token = token });
+            var scadenza = CookieSessione.Scrivi(Response, token);
+            return Ok(new SessioneDTO(user.Id, user.Email!, roles, scadenza));
         }
     }
 }

@@ -87,7 +87,7 @@ export function emailNonConfermata(error: unknown): boolean {
  */
 export function messaggioErroreLogin(error: unknown): string {
   if (!isAxiosError(error)) {
-    // Un token illeggibile non e' un problema di credenziali.
+    // Una risposta illeggibile non e' un problema di credenziali.
     return 'Accesso non riuscito: la risposta del server non risulta utilizzabile.'
   }
   if (!error.response) {

@@ -6,7 +6,7 @@ prodotto e regole del progetto vedi il `CLAUDE.md` alla radice del repo — rest
 ## Stack
 
 ASP.NET Core 10 (dal `V2-017`), C#, Entity Framework Core 10 + Npgsql (PostgreSQL), ASP.NET Identity + JWT
-Bearer (3 ruoli: Admin, Staff, Cliente), FluentValidation 11, AutoMapper, Serilog,
+Bearer, con il token in un cookie `HttpOnly` dal `V2-028` (3 ruoli: Admin, Staff, Cliente), FluentValidation 11, AutoMapper, Serilog,
 IMemoryCache (30 min, invalidazione su write), Quartz.NET 3.22 (persistenza su Postgres,
 tabelle `QRTZ_*` — **non create automaticamente**, va eseguito `Scripts/quartz_postgres.sql`).
 
@@ -92,7 +92,7 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   logica in `Services/Account/AccountService`. L'utente è **sempre quello del token**, mai un id
   passato da fuori. `GET mio-account` dà i dati; `POST cambia-password` vuole la password attuale (con
   lo stesso blocco del login, per email + indirizzo, errori sul campo `passwordAttuale`), cambia il security
-  stamp e restituisce un **token nuovo** con lo stesso inizio di sessione: le altre sessioni si chiudono,
+  stamp e scrive un **token nuovo** nel cookie (`V2-028`) con lo stesso inizio di sessione: le altre sessioni si chiudono,
   questa continua. `POST cancella-account` (con la password, stesso blocco) elimina l'account: 409 se ci sono prenotazioni da servire (`GetDaServireDiUtenteAsync`; il messaggio parla al cliente: «prenotazioni in programma», non usa `DescrizioneImpegni`) o se è l'ultimo Admin. L'eliminazione vera sta in `Services/Account/EliminazioneAccountService`, comune alla pulizia degli inattivi: in una transazione stacca tutte le prenotazioni (`StaccaDaUtenteAsync`: `UserId` a null, le sue prendono «Cliente eliminato» e perdono le note, quelle prese per altri tengono il nome del cliente), scrive la traccia e cancella l'utente. Le righe del registro restano con un id che non corrisponde più a nessuno. L'export dei propri dati per l'utente è stato tolto il 26/10/2026 (troppo tecnico): le richieste arrivano per email.
 - **Recupero password** (`V2-019`): `password-dimenticata` e `reimposta-password`, pubblici, con la regola
   `LimitiRichieste.RecuperoPassword` (numeri della conferma email, contatore proprio). Logica in
@@ -111,6 +111,30 @@ liste scritte a mano: invecchiano. Quello che il codice non dice da solo:
   autenticato) dicono se va (ri)vista e la registrano; la regola è in `Services/Privacy/PresaVisionePrivacy`.
   Versione in vigore: `Privacy:Versione` (su Azure `Privacy__Versione`), controllata all'avvio; va
   cambiata **insieme** a `INFORMATIVA_VERSIONE` del frontend (`lib/privacy.ts`).
+- **Sessione in un cookie `HttpOnly`** (`V2-028`): il token non viaggia più nel corpo delle risposte.
+  `login`, `rinnova-token` e `Account/cambia-password` lo scrivono nel cookie `__Host-gestora-sessione`
+  (`Infrastructure/Auth/CookieSessione`: `Secure`, `SameSite=Strict`, `Path=/`, scade con il token) e
+  rispondono con `SessioneDTO` (`id`, `email`, `ruoli`, `scadenza`). `GET sessione` (autenticato) è il
+  «chi sono» dell'avvio del frontend; `POST logout` (anonimo) toglie il cookie; `cancella-account` lo
+  toglie anche lui. `OnMessageReceived` legge il cookie **solo se manca** l'header `Authorization`, che
+  resta accettato (Swagger, curl); `OnChallenge` toglie un cookie non più valido. Non rimettere il
+  token nelle risposte.
+- **Protezione CSRF** (`V2-028`): insieme al cookie di sessione si scrive `__Host-gestora-xsrf`
+  (`CookieCsrf`, leggibile da JavaScript, valore a caso, stessa scadenza; nascono e muoiono insieme
+  in `CookieSessione.Scrivi`/`Cancella`). `Infrastructure/Middleware/ProtezioneCsrfMiddleware`, prima
+  di `UseAuthentication`: POST/PUT/PATCH/DELETE **con il cookie di sessione e senza `Authorization`**
+  devono avere l'header `X-XSRF-TOKEN` uguale al cookie (confronto a tempo costante), altrimenti
+  **400** e i due cookie tolti. Doppio invio fatto a mano e non l'Antiforgery di ASP.NET Core: quello
+  lega il token all'utente collegato e al login (anonimo) andrebbe rigenerato a parte.
+- **Passaggio da Vercel** (`V2-028`): il browser chiama `/api` sul sito Vercel e il middleware di
+  Vercel inoltra ad Azure con l'header `X-Gestora-Inoltro`.
+  `Infrastructure/Middleware/InoltroVercelMiddleware` (prima di CSRF, autenticazione e limiti) lo
+  confronta con `InoltroVercel:Segreto` (su Azure `InoltroVercel__Segreto`, **obbligatorio fuori da
+  Development**, almeno 32 caratteri: senza, l'app non parte). Se è giusto mette `X-Real-IP` in
+  `HttpContext.Items`, e `IndirizzoClient` lo usa per primo; se manca o è sbagliato `X-Real-IP` non
+  conta. L'header si toglie sempre dalla richiesta (niente log). Con
+  `InoltroVercel:BloccaChiamateDirette = true` le chiamate a `/api` senza parola ricevono **403**;
+  `/health` resta libero. Spento di default.
 - **Portale in manutenzione** (`V2-016`): con `Manutenzione:Attiva = true` (su Azure
   `Manutenzione__Attiva`) `Infrastructure/Middleware/ManutenzioneMiddleware` risponde **503** a ogni
   `/api` con il corpo `ErrorDetails`; `/health` resta libero. Sta dopo `UseCors` (il browser deve
@@ -257,10 +281,13 @@ fisso).
   blocco.
 - **Indirizzo IP reale** — `Common/IndirizzoClient`. **Non usare `Connection.RemoteIpAddress`
   direttamente**: dietro il proxy è un indirizzo di rete interna, uguale per chiunque. Su Azure la
-  catena ha un solo anello, già il client (`V2-008`): l'helper non ne scarta nessuno. Non
+  catena ha un solo anello, già il client (`V2-008`): l'helper non ne scarta nessuno. Dal `V2-028`
+  le richieste che passano da Vercel con la parola segreta usano `X-Real-IP` (vedi *Passaggio da
+  Vercel*): in fondo alla catena c'è un indirizzo di Vercel, diverso a ogni richiesta. Non
   `UseForwardedHeaders` (prende l'anello sbagliato, cioè il proxy). Per rimisurare la catena:
   `GET /api/LogActivity/diagnostica-inoltro` (Admin), con il middleware disattivato (altrimenti
-  legge un header già consumato).
+  legge un header già consumato). Dice anche `passatoDaVercel`; con il blocco delle chiamate dirette
+  acceso si apre solo dal sito (`https://<sito>/api/LogActivity/diagnostica-inoltro`).
 - **Utenze mai usate** (`V2-015`): `UtenzeInattiveCleanupJob` (ogni notte alle 3:00, dopo i due
   job delle prenotazioni) elimina fino a 500 utenze per volta che **non hanno ruoli diversi da
   Cliente**, non hanno mai fatto login (`UltimoAccesso` null), sono state create prima di
@@ -317,7 +344,7 @@ fisso).
 - **Token e security stamp**: il JWT porta il claim `stamp`, confrontato a ogni
   richiesta in `OnTokenValidated`. Chi cambia ruoli o email di un utente deve chiamare
   `UpdateSecurityStampAsync` (già fatto in assign/remove-role e update-user).
-- **Rinnovo del token** (`V2-010`): `POST rinnova-token` (qualsiasi utente autenticato) dà un token
+- **Rinnovo del token** (`V2-010`): `POST rinnova-token` (qualsiasi utente autenticato) scrive nel cookie un token
   nuovo con ruoli e stamp riletti adesso. Il claim `inizio_sessione` (istante del login, secondi
   Unix) passa invariato da un rinnovo all'altro e la scadenza non va mai oltre
   `JwtSettings:MaxSessionHours` (12) da lì: oltre, 401 e si rifà il login. La regola sta in
@@ -399,7 +426,7 @@ fisso).
 ## Test
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
-motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri. **492 test totali.**
+motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri, il cookie di sessione, la protezione CSRF e il passaggio da Vercel (`V2-028`). **527 test totali.**
 
 - `PrenotazioniServiceTests` configura l'InMemory con
   `ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` — senza questa

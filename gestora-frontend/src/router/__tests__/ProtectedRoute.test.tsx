@@ -40,13 +40,13 @@ function renderConUtente(utente: AuthUser | null, ruoliAmmessi: string[]) {
   )
 }
 
-const admin: AuthUser = { id: '1', email: 'admin@gestora.it', roles: ['Admin'], token: 't' }
-const cliente: AuthUser = { id: '2', email: 'cliente@gestora.it', roles: ['Cliente'], token: 't' }
+const admin: AuthUser = { id: '1', email: 'admin@gestora.it', roles: ['Admin'], scadenza: '2099-01-01T00:00:00Z' }
+const cliente: AuthUser = { id: '2', email: 'cliente@gestora.it', roles: ['Cliente'], scadenza: '2099-01-01T00:00:00Z' }
 const staffEAdmin: AuthUser = {
   id: '3',
   email: 'capo@gestora.it',
   roles: ['Staff', 'Admin'],
-  token: 't',
+  scadenza: '2099-01-01T00:00:00Z',
 }
 
 describe('ProtectedRoute', () => {

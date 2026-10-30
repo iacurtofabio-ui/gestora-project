@@ -36,8 +36,12 @@ cd GestoraWebApi; dotnet run
 cd gestora-frontend; npm run dev
 ```
 
-Il frontend locale legge `.env.local`, che deve contenere `VITE_API_URL=http://localhost:5099/api`.
-Quel file **non è versionato**: su un computer nuovo va ricreato.
+Il frontend chiama `/api` sul proprio indirizzo e Vite lo gira al backend su `localhost:5099`
+(`vite.config.ts`, dal `V2-028`): non serve più `VITE_API_URL` in `.env.local` e, se c'è, viene
+ignorata. Il backend va avviato prima: senza, ogni pagina dà errore di rete.
+
+> Il login in locale funziona con Chrome, Edge e Firefox. **Safari non accetta i cookie `Secure` su
+> `http://localhost`**: in locale da Safari non si entra. In produzione (https) sì.
 
 > Aprendo `localhost:5173` si vedono sempre i dati del **database locale**, mai quelli di
 > produzione. È voluto.
@@ -223,16 +227,16 @@ di un secondo, prima che .NET abbia finito di partire. **Non è un errore del co
 richiesta successiva (anche `/health` o il controllo di UptimeRobot) il sito riparte con
 l'immagine nuova, il controllo riesce in circa 11 secondi e il log dice `Site started`. Quindi,
 dopo un rilascio: aprire `/health` e aspettare `Healthy`. Fino a quella richiesta il backend resta
-spento: con la produzione aperta al pubblico va tenuto presente (da rivedere prima della `v3.0.0`).
+spento. Con la produzione aperta (dal 29/10/2026) **dopo ogni rilascio si apre subito `/health`**:
+altrimenti il primo visitatore lo fa ripartire lui, aspettando una decina di secondi.
 
 Quindi: se la modifica è solo di backend, Vercel ricostruisce ma non cambia niente (il frontend
 resta lo stesso), e viceversa. La catena backend ha due passaggi automatici in serie (Actions poi
 webhook Azure): se `/health` non risponde subito dopo il push, aspettare qualche minuto prima di
 sospettare un problema — è la catena che sta ancora girando, non necessariamente un guasto.
 
-**Numerazione:** la v2 si è chiusa con il tag `v2.1.0` (15/10/2026); il prossimo tag è `v3.0.0`,
-alla fine del piano della v3 (`BACKLOG.md`). Fino ad allora i rilasci delle singole fasi vanno su
-`main` **senza tag**, dietro il «portale in manutenzione» (sotto). In generale: `vX.y.0` per un
+**Numerazione:** la v2 si è chiusa con il tag `v2.1.0` (15/10/2026), la v3 con `v3.0.0`
+(29/10/2026, PR #8, con una release su GitHub). Il prossimo è `v3.1.0`. In generale: `vX.y.0` per un
 gruppo di funzionalità o segnalazioni, `vX.y.z` per fix e correzioni. Un
 riordino interno, senza effetti sull'applicazione, può restare **senza tag**.
 
@@ -246,10 +250,11 @@ processo. Il frontend si verifica aprendo `https://gestora-project-xi.vercel.app
 Poi login dal frontend con i tre ruoli.
 
 **Controllo automatico (`V2-018`).** Un monitor **UptimeRobot** (account di Fabio, piano gratuito)
-chiama `/health` ogni 30 minuti e manda un'email se non risponde o risponde con un errore. Dopo un
-rilascio, il monitor deve tornare verde da solo. Il risveglio ogni 30 minuti fa partire anche i job
-notturni entro mezz'ora dall'orario previsto (vedi *Job notturni* in `BACKLOG.md`, *Rischi
-accettati*). Per provare l'avviso senza toccare la produzione: un monitor temporaneo su un
+chiama `/health` ogni **5 minuti** (dal 29/10/2026, prima ogni 30) e manda un'email se non risponde
+o risponde con un errore. Dopo un rilascio, il monitor deve tornare verde da solo. Una chiamata ogni
+5 minuti tiene acceso il backend, che sul piano F1 si spegne dopo circa 20 minuti senza richieste:
+così il primo visitatore non aspetta e i job notturni partono all'ora prevista (vedi *Job notturni*
+in `BACKLOG.md`, *Rischi accettati*). Per provare l'avviso senza toccare la produzione: un monitor temporaneo su un
 indirizzo che non esiste (es. `/health-prova-inesistente`, risponde 404), da eliminare dopo
 l'email.
 
@@ -339,9 +344,50 @@ Il modulo dei pareri (`V2-022`) accetta `LimitiRichieste:PareriPerFinestra` (2) 
 sono già arrivati. Il contatore sta in memoria: un riavvio del backend lo azzera. Per provarlo in
 locale basta mandare tre pareri di fila; per ricominciare, riavviare il backend.
 
+### Il passaggio da Vercel e la parola segreta (`V2-028`)
+
+Dalla `v3.1.0` il token sta in un cookie `HttpOnly` e il browser non chiama più Azure: chiama `/api`
+sul sito Vercel, e il middleware di Vercel (`gestora-frontend/middleware.ts`) gira la richiesta ad
+Azure aggiungendo una **parola segreta** (header `X-Gestora-Inoltro`). Solo con quella il backend si
+fida dell'indirizzo del visitatore che Vercel scrive in `X-Real-IP`: senza, i limiti di richieste e
+il blocco dopo 5 password sbagliate vedrebbero tutti con l'indirizzo di Vercel.
+
+| Dove | Variabile | Valore |
+|---|---|---|
+| Azure (*Impostazioni → Variabili di ambiente*) | `InoltroVercel__Segreto` | la parola, **almeno 32 caratteri**. Obbligatoria: senza, l'app **non parte** |
+| Azure | `InoltroVercel__BloccaChiamateDirette` | `true` per rifiutare con 403 le chiamate a `/api` che non passano da Vercel. Senza la variabile vale `false` |
+| Vercel (*Settings → Environment Variables*, ambienti Production e Preview) | `INOLTRO_SEGRETO` | la **stessa** parola di Azure. Può essere di tipo *Sensitive*: la legge il middleware mentre gira, non la build |
+| Vercel (Production e Preview) | `API_AZURE` | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` (senza `/api` in fondo) |
+
+**Creare la parola** senza farla vedere (finisce negli appunti, da incollare nei due pannelli):
+```powershell
+$b = New-Object byte[] 36; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b) | Set-Clipboard
+```
+Non va scritta in chat, nei file o nei commit. Per cambiarla: nuova parola prima su Vercel, poi su
+Azure. Nei pochi minuti in mezzo le richieste passano, ma con l'indirizzo di Vercel.
+
+**Ordine del rilascio della `v3.1.0`** (una volta sola):
+1. Vercel: `API_AZURE` e `INOLTRO_SEGRETO` (Production e Preview)
+2. Azure: `InoltroVercel__Segreto` (senza il blocco)
+3. Merge `v2` → `main`; aspettare l'immagine nuova su Azure e la pubblicazione su Vercel
+4. `/health` → `Healthy`; login da Chrome e da Safari (anche iPhone)
+5. Da Admin, sul sito: `https://gestora-project-xi.vercel.app/api/LogActivity/diagnostica-inoltro`
+   deve dire `"passatoDaVercel": true` e `indirizzoUsatoDallApplicazione` uguale al proprio indirizzo
+6. Azure: `InoltroVercel__BloccaChiamateDirette` = `true`; poi `.../azurewebsites.net/api/Setup/stato`
+   deve rispondere **403**, `/health` ancora `Healthy` e il sito funzionare come prima
+7. Vercel: togliere `VITE_API_URL`, che il frontend non legge più
+
+> ⚠️ Al rilascio **chi era già entrato deve rifare il login**: il vecchio token in `localStorage` non
+> viene più letto, e il frontend lo cancella alla prima apertura.
+
+Con il blocco acceso, `curl` diretto ad Azure risponde 403 su ogni `/api`: la diagnostica si apre
+dal sito, come al punto 5. `/health` resta libero per Azure e UptimeRobot. Per spegnere il blocco:
+togliere la variabile o metterla a `false`.
+
 ### Il portale in manutenzione (`V2-016`)
 
-Finché la v3 non è rilasciata, la produzione resta chiusa. Il blocco ha **due interruttori**, uno
+È stato acceso dal 15/10 al 29/10/2026, fino al rilascio della `v3.0.0`; oggi è spento e resta
+pronto per un intervento che richieda di chiudere il sito. Il blocco ha **due interruttori**, uno
 per parte, e non richiede modifiche al codice:
 
 | Dove | Variabile | Effetto |
@@ -360,8 +406,9 @@ curl https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net/hea
 deve rispondere `Healthy`; una chiamata a `/api` (per esempio `.../api/Setup/stato`) deve
 rispondere 503. Aprendo il frontend si vede solo la schermata di manutenzione.
 
-**Spegnere** (al rilascio `v3.0.0`): togliere le due variabili, o metterle a `false`, e ripubblicare
-il frontend.
+**Spegnere**: togliere le due variabili, o metterle a `false`, e ripubblicare il frontend. Ordine
+usato al rilascio `v3.0.0`: prima Vercel, poi Azure. Se nel database manca ancora l'Admin, il
+`/setup` va fatto **subito dopo**: finché non c'è, chiunque apra il sito può crearlo.
 
 > ⚠️ Spenta di default: in `appsettings.json` `Manutenzione:Attiva` vale `false`, e senza la
 > variabile su Vercel il frontend si apre normalmente. In locale non cambia niente.
@@ -381,8 +428,11 @@ sessione remota.
 ### Il backup di produzione (`V2-018`)
 
 **Quando.** Sempre prima di una migration, di un reset o di un rilascio che tocca il database
-(§3, §4). Con il locale aperto, anche **una volta a settimana**. Il primo vero backup si fa al
-rilascio della F2, prima della migration 9.
+(§3, §4). Con la produzione aperta (dal 29/10/2026), anche **una volta al mese** (decisione di
+Fabio: il portale all'inizio è poco usato; da portare a settimanale quando le prenotazioni
+crescono). Il promemoria è un passo nel foglio *Task v3* del tracker: fatto il backup, si segna
+*Fatto* e si aggiunge quello del mese dopo. Il primo vero backup è del 20/10/2026, prima della
+migration 9.
 
 **Dove.** Fuori dal progetto, in
 `..\Gestora documentazione\Gestora_backup\` (accanto alla cartella del progetto; i comandi partono da lì), con il
@@ -590,14 +640,22 @@ PowerShell 5.1 lo legge con la codifica sbagliata e gli accenti si rompono.
 - **Valori lasciati come segnaposto.** Durante la configurazione iniziale è facile copiare un
   nome di variabile d'esempio (`<il-tuo-valore-qui>`) e dimenticare di sostituirlo col valore
   vero. L'app parte comunque, con un errore che dipende da cosa manca.
-- **`VITE_API_URL` su Vercel deve essere di tipo *Config* (o *Plaintext*), non *Secret*.** Un
-  valore salvato come *Secret* non viene esposto al build del frontend nel modo che Vite si
-  aspetta: la build riesce, ma l'app compilata punta a un indirizzo vuoto o sbagliato. Deve anche
-  finire con `/api`.
-- **L'indirizzo del backend sta anche in `gestora-frontend/vercel.json`** (dal `V2-018`), nella
-  regola `connect-src` della Content-Security-Policy. Se il backend cambia indirizzo, va cambiato
-  lì oltre che in `VITE_API_URL`: altrimenti il sito si apre, ma il browser blocca ogni chiamata
-  all'API (in console: «Refused to connect ...»).
+- **L'indirizzo del backend sta in `API_AZURE` su Vercel** (dal `V2-028`, prima era
+  `VITE_API_URL`). La legge `middleware.ts` a ogni richiesta, quindi cambiarla non richiede una nuova
+  build. Se il backend cambia indirizzo, vanno cambiate `API_AZURE` e `AllowedHosts`. La
+  Content-Security-Policy di `vercel.json` ammette chiamate solo verso il sito stesso
+  (`connect-src 'self'`): non contiene più l'indirizzo di Azure.
+- **Il middleware di Vercel non gira in locale.** `npm run dev` usa il proxy di Vite; il middleware
+  si prova solo su un'anteprima o in produzione. Senza `API_AZURE` o `INOLTRO_SEGRETO` risponde 500
+  «Configurazione mancante sul sito» a ogni chiamata.
+- **Ripubblicare un'anteprima può finire in produzione.** Il 30/10/2026 il *Redeploy* della
+  pubblicazione di `v2` è andato su Production: frontend nuovo con backend vecchio, nessuno riusciva
+  a entrare finché non è stata rimessa la pubblicazione di `main` (*Promote to Production*). Prima di
+  confermare un *Redeploy* o un *Promote*, controllare l'ambiente scritto nella finestra: per le prove
+  dev'essere **Preview**. Dopo, verificare che il sito di produzione chiami ancora il backend giusto
+  (F12 → *Network*).
+- **Le variabili `VITE_...` restano di tipo *Config* (o *Plaintext*), non *Secret*** (oggi solo
+  `VITE_MANUTENZIONE`): un *Secret* non arriva alla build nel modo che Vite si aspetta.
 - **SCM Basic Auth necessaria per il webhook di distribuzione continua.** Senza, Azure non
   accetta la notifica che arriva da Docker Hub quando c'è una nuova immagine, e il backend resta
   fermo alla versione precedente finché non si riavvia a mano dal pannello.
@@ -623,38 +681,40 @@ sezione *Rischi accettati e cose decise di non fare*).
 
 ## 9. Sicurezza
 
-### Il token nel browser, spiegato in chiaro
+### Il token nel browser, spiegato in chiaro (`V2-028`)
 
-La domanda: se il token di accesso (JWT) si legge dagli strumenti sviluppatore del browser
-(F12 → Application → Local Storage), chiunque arrivi a quella schermata non ottiene forse
-l'accesso come quell'utente?
+Fino alla `v3.0.0` il token stava in `localStorage`: qualsiasi script della pagina poteva leggerlo,
+e uno script estraneo (una libreria compromessa, un errore che lascia passare codice) poteva
+portarselo via e usarlo da un altro computer. Dalla `v3.1.0` il token sta in un **cookie
+`HttpOnly`**:
 
-Risposta: **sì, ma solo chi ha già in mano quel browser con quella sessione aperta.** Non è un
-modo per entrare da fuori. In dettaglio:
+- **JavaScript non lo vede.** Nemmeno dagli strumenti sviluppatore, scheda *Console*: il browser lo
+  allega da solo alle chiamate verso `/api` e non lo mostra mai alla pagina. Dagli strumenti
+  sviluppatore (F12 → *Application* → *Cookies*) si vede che c'è, ma uno script non può copiarlo.
+- **Va solo verso il nostro sito.** `__Host-gestora-sessione`: `Secure` (solo https), `SameSite=Strict`
+  (mai in una richiesta partita da un altro sito), prefisso `__Host-` (nessun altro sito, nemmeno un
+  sottodominio, può scriverne uno con lo stesso nome).
+- **Il server verifica la firma**, come prima: un token modificato a mano viene rifiutato.
 
-- **Un altro sito non può leggerlo.** Ogni sito web ha il proprio `localStorage`, isolato dagli
-  altri: è una regola del browser (same-origin policy), non qualcosa che Gestora fa da sé.
-- **Un altro computer non può leggerlo.** Il `localStorage` vive solo sulla macchina dove è stato
-  scritto.
-- **Chi vede quel token ha comunque bisogno di avere davanti quel browser già loggato** — cioè la
-  stessa situazione di chi si siede a una tastiera con la sessione già aperta. Copiare il token
-  dagli strumenti sviluppatore non è diverso, in pratica, da usare direttamente quella finestra.
-- **Il server verifica la firma.** Un token modificato a mano (per esempio per cambiare il proprio
-  ruolo) viene rifiutato: la firma non corrisponderebbe più.
+Un cookie che il browser allega da solo apre un rischio nuovo: un altro sito potrebbe far partire
+una richiesta a nome dell'utente (CSRF). Le difese sono due: `SameSite=Strict`, e il **doppio
+invio**. Con il cookie di sessione il backend scrive `__Host-gestora-xsrf`, leggibile da JavaScript
+e con un valore a caso; Axios lo rimanda nell'header `X-XSRF-TOKEN`. Ogni scrittura (POST, PUT,
+PATCH, DELETE) che arriva con il cookie di sessione ma senza quell'header, o con un valore diverso,
+riceve **400** e i due cookie si tolgono (`ProtezioneCsrfMiddleware`). Un altro sito non può
+leggere il cookie, quindi non sa cosa scrivere nell'header.
 
-Quindi non è un bug: è come funziona ogni applicazione web con login che non usa un sistema più
-complesso (cookie `HttpOnly` + protezione CSRF, che è un'architettura diversa, non una correzione
-a questa). La protezione vera sta in due cose, entrambe già presenti:
+Restano le protezioni di prima:
 
 1. **La scadenza**, 60 minuti (`JwtSettings:ExpiryMinutes`) — con `ClockSkew = TimeSpan.Zero`
    scade esattamente a 60 minuti, non a 65. Dal `V2-010` il frontend lo rinnova da solo 10 minuti
    prima, finché la pagina è aperta (`POST api/AuthenticationUser/rinnova-token`), ma mai oltre
-   **12 ore dal login** (`JwtSettings:MaxSessionHours`): poi si rifà l'accesso. Un token copiato
-   si potrebbe quindi rinnovare fino a quel limite; a chiudere davvero una sessione resta il
-   security stamp, che respinge subito i token di un utente modificato o eliminato.
-2. **Il logout**, che cancella il token e svuota anche la cache di React Query
-   (`AppLayout.handleLogout` e il gestore di sessione scaduta fanno entrambi le due cose insieme),
-   così non restano dati del vecchio utente in memoria dopo l'uscita.
+   **12 ore dal login** (`JwtSettings:MaxSessionHours`): poi si rifà l'accesso. Il security stamp
+   respinge subito i token di un utente modificato o eliminato.
+2. **Il logout** chiede al server di togliere il cookie (`POST api/AuthenticationUser/logout`, solo
+   il server può farlo) e svuota la cache di React Query, così non restano dati del vecchio utente in
+   memoria.
 
-**Idea** (non una correzione): passare a cookie `HttpOnly` con protezione CSRF è una
-riprogettazione dell'autenticazione, non un fix — vedi `BACKLOG.md`, sezione *Idee*.
+L'header `Authorization: Bearer` è ancora accettato (Swagger in locale, curl per la diagnostica):
+un altro sito non può aggiungerlo, quindi non serve la protezione CSRF. Il token per curl si prende
+dal cookie negli strumenti sviluppatore.

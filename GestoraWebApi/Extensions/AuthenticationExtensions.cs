@@ -82,6 +82,14 @@ namespace GestoraWebApi.Extensions
                 // Personalizzazione risposta 401
                 options.Events = new JwtBearerEvents
                 {
+                    // V2-028: il token arriva nel cookie HttpOnly. Se la richiesta porta l'header
+                    // Authorization (Swagger, curl) si lascia fare al middleware, che legge quello.
+                    OnMessageReceived = context =>
+                    {
+                        context.Token = CookieSessione.TokenDallaRichiesta(context.Request);
+                        return Task.CompletedTask;
+                    },
+
                     // AUD-M6: senza questo controllo un token restava valido fino alla scadenza
                     // anche dopo che all'utente era stato tolto un ruolo o l'account era stato
                     // eliminato. Costa una lettura dell'utente per richiesta autenticata.
@@ -104,6 +112,11 @@ namespace GestoraWebApi.Extensions
                     {
                         // Impedisce la risposta di default (WWW-Authenticate senza body)
                         context.HandleResponse();
+
+                        // V2-028: un cookie con un token scaduto o non più valido non serve a
+                        // nulla; si toglie, così il browser smette di mandarlo.
+                        if (context.Request.Cookies.ContainsKey(CookieSessione.Nome))
+                            CookieSessione.Cancella(context.Response);
 
                         //Imposta lo status e il content-type
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;

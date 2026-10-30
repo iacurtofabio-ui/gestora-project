@@ -7,13 +7,21 @@
  * proprio error boundary che intercetta gli errori delle pagine prima che arrivino a quello di
  * React, e senza un errorElement mostrerebbe la sua schermata di sviluppo con lo stack trace.
  */
+import apiClient from '@/lib/axios'
+import { Endpoints } from '@/lib/endpoints'
 import { Button } from '@/components/ui/button'
 import { SchermataMessaggio } from '@/components/SchermataMessaggio'
 
 export default function ErrorScreen({ messaggio }: { messaggio?: string }) {
+  // V2-028: la sessione sta in un cookie HttpOnly, che solo il server puo' togliere. Si esce in
+  // ogni caso: anche se la chiamata fallisce, la pagina di login si ricarica da capo.
   function ripartiDaLogin() {
-    localStorage.removeItem('token')
-    window.location.href = '/login'
+    apiClient
+      .post(Endpoints.auth.logout)
+      .catch(() => {})
+      .finally(() => {
+        window.location.href = '/login'
+      })
   }
 
   return (
