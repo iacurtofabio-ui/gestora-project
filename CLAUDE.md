@@ -12,9 +12,10 @@ dei pareri e vetrina. Il piano in sei fasi (F0-F5, deciso il 15/10/2026, nello
 [studio di fattibilità](https://claude.ai/code/artifact/f31f316c-733c-4a5e-a93f-2f139c0518c1))
 stimava 37 ore fino a fine gennaio 2027: è chiuso in due settimane. **Il lavoro si segue dal foglio
 *Task v3* del tracker** (§8): il prossimo passo è in cima alla Dashboard.
-**Prossimo passo: `V3.1-T01`**, decidere la **v3.1.0**: primo lavoro `V2-028` (token in cookie
-`HttpOnly`, strada da scegliere), più l'eventuale demo interattiva `/demo` per i visitatori (nota in
-`BACKLOG.md`).
+**v3.1.0 decisa il 30/10/2026** (`V3.1-T01`): prima `V2-028` (token in cookie `HttpOnly`, chiamate
+che passano da Vercel, sviluppa Claude), poi la demo `/demo` (`V2-030`), poi il tag. **Prossimo
+passo: `V2-028-T02`**, misurare la catena di `X-Forwarded-For` attraverso Vercel (Fabio, con la
+scaletta di Claude).
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 

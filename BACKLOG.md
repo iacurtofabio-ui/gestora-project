@@ -48,15 +48,17 @@ Modello da copiare:
 
 ## 🔵 Da fare
 
-### Dopo la v3.0.0
+### La v3.1.0
 
 La `v3.0.0` è in produzione dal **29/10/2026** (merge con la PR #8, `8ab0db0`, tag `v3.0.0`): il
-piano F0-F5 è chiuso e il portale è aperto. Il primo lavoro della v3.1 è `V2-028`; con la stessa
-decisione si sceglie se fare anche la demo qui sotto (passo `V3.1-T01` nel foglio *Task v3*).
+piano F0-F5 è chiuso e il portale è aperto. Il **30/10/2026** Fabio ha deciso la v3.1.0
+(`V3.1-T01`): prima `V2-028`, poi la demo `V2-030`, poi il tag `v3.1.0` (`V3.1-T02`). I passi sono
+nel foglio *Task v3*, ordine 510-800.
 
 | Sigla | Fase | Tipo | Cosa | Chi sviluppa | Stato |
 |---|---|---|---|---|---|
-| `V2-028` | v3.1 | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, al posto di `localStorage`. Era un rischio accettato, riaperto da Fabio il 28/10/2026 dopo l'audit. Analisi del 29/10/2026: Safari blocca i cookie fra siti diversi (`vercel.app` e `azurewebsites.net`), quindi servono o il passaggio delle chiamate da Vercel con un middleware e una parola segreta per fidarsi dell'indirizzo del visitatore (gratis, 10-14 ore), o un dominio proprio con Azure a pagamento (il piano F1 non accetta domini propri). **Rimandata da Fabio a dopo la `v3.0.0`**: primo lavoro della v3.1, strada da scegliere allora | Claude | in pausa |
+| `V2-028` | v3.1 | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, al posto di `localStorage`. Era un rischio accettato, riaperto da Fabio il 28/10/2026 dopo l'audit. Safari blocca i cookie fra siti diversi (`vercel.app` e `azurewebsites.net`): **strada scelta il 30/10/2026, il passaggio delle chiamate da Vercel** (`/api` girato ad Azure da un middleware Vercel), con una parola segreta perché Azure si fidi dell'indirizzo del visitatore che Vercel inoltra (serve ai limiti di richieste e al blocco per indirizzo). Gratis, 10-14 ore. Scartato il dominio proprio (Azure a pagamento). Primo passo: misurare la catena di `X-Forwarded-For` attraverso Vercel. Al rilascio chi era entrato dovrà rifare il login | Claude | da fare |
+| `V2-030` | v3.1 | nuova funzione | Demo interattiva `/demo` per i visitatori, descritta sotto: tour guidato, riquadro «Quanti siete?», pareri. Circa 8-10 ore, dopo `V2-028` | da decidere | da fare |
 
 Tolte il 29/10/2026, perché chiuse e in produzione con la `v3.0.0`: `V2-016` (F0, chiusura v2 e
 portale in manutenzione), `V2-017` (F1, .NET 10), `V2-018` (F2, robustezza), `V2-019` (F3, privacy e
@@ -66,11 +68,10 @@ della disponibilità), `V2-025` (report CSV), `V2-026` (niente dati sulla salute
 indirizzo) e `V2-029` (migliorie dell'audit). Scartate il 15/10/2026, prima di iniziare: `V2-020` e
 `V2-021` (prova pubblica con una sandbox in memoria per visitatore).
 
-### Da decidere ora: la v3.1.0 con una demo interattiva
+### `V2-030`: la demo interattiva
 
-**La v3.0.0 è rilasciata: si decide se fare la v3.1.0.** Non è un impegno. La proposta è una
-**demo interattiva** (*product tour*): una pagina pubblica `/demo` nel frontend di produzione, senza
-login, senza backend, senza dati salvati.
+Decisa il 30/10/2026 con la v3.1.0, dopo `V2-028`. È una **demo interattiva** (*product tour*): una
+pagina pubblica `/demo` nel frontend di produzione, senza login, senza backend, senza dati salvati.
 1. Tour guidato: 6-7 schermate vere di Gestora (zone → tavoli → fasce → prenotazione → dashboard),
    ognuna con un punto evidenziato e una frase semplice.
 2. Riquadro «Quanti siete?»: il visitatore sceglie le persone e vede su una piantina finta quali
@@ -78,10 +79,9 @@ login, senza backend, senza dati salvati.
    `AssegnazioneTavoli`, dichiarata come dimostrativa.
 3. Il modulo dei pareri (`V2-022`) in fondo.
 
-Circa **8-10 ore** con il riquadro, **6** con solo tour e pareri: 2-3 settimane dopo la v3.0.0.
-Niente seconda app su Azure né secondo progetto Vercel; nessun dato dei visitatori. Scartati gli
-strumenti esterni (Arcade, Storylane): aggiungono i loro cookie. Se si decide di farla, diventa una
-voce `V2-0xx` nuova.
+Circa **8-10 ore** con il riquadro (scelto da Fabio). Niente seconda app su Azure né secondo
+progetto Vercel; nessun dato dei visitatori. Scartati gli strumenti esterni (Arcade, Storylane):
+aggiungono i loro cookie. Chi la sviluppa e i passi veri si decidono in `V2-030-T01`.
 
 ### In pausa
 
@@ -187,7 +187,7 @@ Se UptimeRobot si ferma, i job tornano a partire alla prima richiesta del mattin
 **Token di accesso in `localStorage`, fino alla v3.1** (`V2-028`). Uno script estraneo nella pagina
 potrebbe leggerlo; la CSP rigida del frontend (solo script del sito, nessuno script scritto nella
 pagina senza impronta) è la difesa. Accettato **con scadenza** il 29/10/2026: si chiude con `V2-028`,
-primo lavoro dopo la `v3.0.0`.
+primo lavoro della v3.1 (in corso dal 30/10/2026).
 
 **Email unica controllata solo dall'applicazione** (Identity, `RequireUniqueEmail`), senza un
 indice unico nel database: basta così.
