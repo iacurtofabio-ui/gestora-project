@@ -57,7 +57,7 @@ nel foglio *Task v3*, ordine 510-800.
 
 | Sigla | Fase | Tipo | Cosa | Chi sviluppa | Stato |
 |---|---|---|---|---|---|
-| `V2-028` | v3.1 | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, al posto di `localStorage`. Era un rischio accettato, riaperto da Fabio il 28/10/2026 dopo l'audit. Safari blocca i cookie fra siti diversi (`vercel.app` e `azurewebsites.net`): **strada scelta il 30/10/2026, il passaggio delle chiamate da Vercel** (`/api` girato ad Azure da un middleware Vercel), con una parola segreta perché Azure si fidi dell'indirizzo del visitatore che Vercel inoltra (serve ai limiti di richieste e al blocco per indirizzo). Gratis, 10-14 ore. Scartato il dominio proprio (Azure a pagamento). Primo passo: misurare la catena di `X-Forwarded-For` attraverso Vercel. Al rilascio chi era entrato dovrà rifare il login | Claude | da fare |
+| `V2-028` | v3.1 | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, al posto di `localStorage`. Era un rischio accettato, riaperto da Fabio il 28/10/2026 dopo l'audit. Safari blocca i cookie fra siti diversi (`vercel.app` e `azurewebsites.net`): **strada scelta il 30/10/2026, il passaggio delle chiamate da Vercel** (`/api` girato ad Azure da un middleware Vercel), con una parola segreta perché Azure si fidi dell'indirizzo del visitatore che Vercel inoltra (serve ai limiti di richieste e al blocco per indirizzo). Gratis, 10-14 ore. Scartato il dominio proprio (Azure a pagamento). Misurata la catena il 30/10/2026 (`T02`); sviluppata lo stesso giorno (`T03`-`T08`): cookie `__Host-gestora-sessione`, doppio invio CSRF, parola segreta `InoltroVercel`, `gestora-frontend/middleware.ts`. Restano la prova a vista, il commit, la prova su un'anteprima Vercel e il rilascio (`RUNBOOK.md` §5, ordine delle variabili). Al rilascio chi era entrato dovrà rifare il login | Claude | in corso |
 | `V2-030` | v3.1 | nuova funzione | Demo interattiva `/demo` per i visitatori, descritta sotto: tour guidato, riquadro «Quanti siete?», pareri. Circa 8-10 ore, dopo `V2-028` | da decidere | da fare |
 
 Tolte il 29/10/2026, perché chiuse e in produzione con la `v3.0.0`: `V2-016` (F0, chiusura v2 e
@@ -185,9 +185,9 @@ Se UptimeRobot si ferma, i job tornano a partire alla prima richiesta del mattin
 è «Always On», cioè un piano a pagamento.
 
 **Token di accesso in `localStorage`, fino alla v3.1** (`V2-028`). Uno script estraneo nella pagina
-potrebbe leggerlo; la CSP rigida del frontend (solo script del sito, nessuno script scritto nella
-pagina senza impronta) è la difesa. Accettato **con scadenza** il 29/10/2026: si chiude con `V2-028`,
-primo lavoro della v3.1 (in corso dal 30/10/2026).
+potrebbe leggerlo; la CSP rigida del frontend è la difesa. **Chiuso nel codice** il 30/10/2026: su
+`v2` il token sta in un cookie `HttpOnly` con protezione CSRF (`RUNBOOK.md` §9). Resta in produzione
+fino al rilascio (`V2-028-T11`); dopo, questo paragrafo si toglie.
 
 **Email unica controllata solo dall'applicazione** (Identity, `RequireUniqueEmail`), senza un
 indice unico nel database: basta così.

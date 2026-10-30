@@ -8,14 +8,14 @@ backend vedi `lib/endpoints.ts` (fonte di verità) o `GestoraWebApi/CLAUDE.md` p
 
 React 19 + TypeScript + Vite, shadcn/ui + Tailwind CSS, TanStack Query v5 (React Query),
 React Hook Form + Zod, **React Router v7** (`createBrowserRouter` — attenzione: qualunque nota
-che parla di v6 è sbagliata), Axios con interceptor JWT (attach token da localStorage,
-logout + redirect su 401).
+che parla di v6 è sbagliata), Axios verso `/api` sullo stesso sito: il token sta in un cookie `HttpOnly` (`V2-028`), Axios rimanda
+il cookie CSRF e su 401 avvisa della sessione scaduta.
 
 ## Verifica prima di dire "fatto"
 
 ```
 npm run lint      # zero errori
-npm test          # 133 test, Vitest + Testing Library
+npm test          # 139 test, Vitest + Testing Library
 npm run build     # controlla i tipi — npm test NON lo fa (vedi sezione Test)
 ```
 Se hai toccato un componente/pagina visibile e non hai verificato a mano nel browser, dillo
@@ -23,15 +23,24 @@ esplicitamente: non dare per scontato che "compila" equivalga a "funziona nell'i
 
 ## Config — due ambienti separati, non uno che cambia
 
-`.env.local` (non versionato) → `VITE_API_URL`, letto **solo** da Vite in locale (`npm run dev`),
-stabile su `http://localhost:5099/api`. Richiede il backend locale attivo (`dotnet run` in
-`GestoraWebApi/`).
+Dal `V2-028` il frontend chiama sempre `/api` **sul proprio indirizzo** (`baseURL: '/api'` in
+`lib/axios.ts`): per il browser pagine e API sono lo stesso sito, ed è questo che fa funzionare il
+cookie di sessione anche su Safari. `VITE_API_URL` non esiste più.
 
-La produzione (Vercel) **non legge mai `.env.local`**: usa la propria `VITE_API_URL` impostata
-nella dashboard Vercel, puntata al backend Azure. **Deve essere di tipo *Config* (o *Plaintext*),
-non *Secret***: un valore salvato come Secret non arriva alla build nel modo che Vite si aspetta
-(vedi `RUNBOOK.md` §8). Modificare `.env.local` non ha alcun effetto sulla build di produzione.
-Aprire `localhost:5173` mostra sempre i dati del DB locale — voluto.
+- **In locale** il proxy di Vite (`vite.config.ts`) gira `/api` a `http://localhost:5099`. Richiede
+  il backend locale attivo (`dotnet run` in `GestoraWebApi/`). Safari non accetta i cookie `Secure`
+  su `http://localhost`: in locale si prova con Chrome, Edge o Firefox.
+- **Su Vercel** lo fa `middleware.ts` (radice di `gestora-frontend/`, gira sui server di Vercel e non
+  nel browser): gira `/api` all'indirizzo di `API_AZURE` e aggiunge la parola segreta
+  `INOLTRO_SEGRETO` nell'header `X-Gestora-Inoltro`, che il backend controlla prima di fidarsi
+  dell'indirizzo del visitatore. Toglie l'header `host` (Azure lo rifiuterebbe). Il «rewrite» è
+  scritto a mano: il pacchetto `@vercel/functions` porta dipendenze con avvisi di sicurezza. **Non
+  gira con `npm run dev`**: si prova su un'anteprima Vercel; i suoi test sono in
+  `lib/__tests__/middlewareVercel.test.ts`. Variabili e ordine in `RUNBOOK.md` §5.
+
+Le variabili `VITE_...` (oggi solo `VITE_MANUTENZIONE`) entrano nella build: su Vercel di tipo
+*Config* (o *Plaintext*), non *Secret*. Aprire `localhost:5173` mostra sempre i dati del DB locale —
+voluto.
 
 ## Header di sicurezza su Vercel (`V2-018`)
 
@@ -43,9 +52,9 @@ può caricare ed eseguire) più `nosniff`, `X-Frame-Options: DENY`, `Referrer-Po
   `'unsafe-inline'`. Cambiarlo, anche di uno spazio, cambia l'impronta: il test
   `lib/__tests__/vercelHeaders.test.ts` fallisce e dice di aggiornare `vercel.json`. Non risolvere
   aggiungendo `'unsafe-inline'` agli script.
-- **`connect-src` contiene l'indirizzo del backend Azure, scritto a mano.** Se il backend cambia
-  indirizzo, va cambiato anche lì, oltre che in `VITE_API_URL`: altrimenti il sito si carica ma
-  ogni chiamata all'API viene bloccata dal browser.
+- **`connect-src 'self'`** (`V2-028`): il browser chiama solo il sito stesso, perché `/api` passa
+  da Vercel. Non rimetterci l'indirizzo di Azure: vorrebbe dire che il frontend lo chiama
+  direttamente, e il cookie di sessione su Safari non arriverebbe.
 - **`style-src` ha `'unsafe-inline'`** perché `sonner` (le notifiche) inserisce da solo un blocco
   di stili nella pagina. Per gli stili il rischio è basso; per gli script no.
 
@@ -119,7 +128,7 @@ in `components/ThemeToggle.tsx`, ricordato in `localStorage`. Tre stati: **chiar
 
 `/` mostra `pages/LandingPage.tsx`, raggiungibile **senza account**.
 
-> ⚠️ **In quella pagina non c'è nessun token.** Gli unici endpoint chiamabili sono
+> ⚠️ **In quella pagina non c'è nessuna sessione.** Gli unici endpoint chiamabili sono
 > `check-disponibilita` e `limiti-prenotazione` (il tetto dei coperti per il campo «Persone», hook
 > `useLimitiPrenotazione`: si usa `maxCopertiPrenotazioneOnline`, 20, e oltre compare l'invito a
 > contattare il ristorante; `maxCopertiPerPrenotazione` è il limite tecnico dello Staff).
@@ -205,9 +214,9 @@ vuoto), valorizzata = edit (form ripopolato via `useEffect` + `reset`).
 | `lib/endpoints.ts` | Tutti i path degli endpoint, raggruppati per area — **fonte di verità** per gli endpoint disponibili |
 | `lib/validazioni.ts` | Regole condivise dei form, password inclusa: 8 caratteri, maiuscola, numero, carattere speciale |
 | `lib/date.ts` | `oggiInItalia`, `lunediSettimanaCorrenteInItalia`. Fuso `Europe/Rome` fissato nel codice. **Mai** `toISOString()` per una data di calendario |
-| `lib/jwt.ts` | Unico punto che legge il token. È una **lettura**, non una verifica: la firma non è controllabile dal browser |
-| `lib/session.ts` | Ponte fra l'intercettore Axios (fuori da React) e i componenti, per la scadenza sessione senza ricaricare |
-| `lib/rinnovoSessione.ts` | Quando rinnovare il token (`V2-010`): 10 minuti prima della scadenza. Il rinnovo lo fa `AuthProvider` finché la pagina è aperta; si ferma al logout e quando il server non allunga più la scadenza (12 ore dal login) |
+| `lib/session.ts` | Ponte fra l'intercettore Axios (fuori da React) e i componenti, per la scadenza sessione senza ricaricare. Dal `V2-028` tiene anche se la sessione è aperta (`segnaSessione`, `sessioneAttiva`, `chiudiSessione`): il token non è più leggibile |
+| `lib/axios.ts` | `COOKIE_CSRF` (`__Host-gestora-xsrf`) e `SENZA_SCADENZA`: le chiamate su cui un 401 non vuol dire sessione scaduta (login, «chi sono», conferma email, recupero password) |
+| `lib/rinnovoSessione.ts` | Quando rinnovare il token (`V2-010`): 10 minuti prima della `scadenza` che dà il server (`SessioneDTO`). Il rinnovo lo fa `AuthProvider` finché la pagina è aperta; si ferma al logout e quando il server non allunga più la scadenza (12 ore dal login) |
 | `lib/giorni.ts` | `GIORNI_SETTIMANA` |
 | `lib/invalidazioni.ts` | `invalidaVisteDellaSala`: Dashboard, disponibilità e riepilogo sala da rinfrescare dopo ogni scrittura su fasce, tavoli e zone |
 | `lib/validazioni.ts` → `interoObbligatorio` | Campo numerico dei form: con `valueAsNumber` un campo vuoto è `NaN` e Zod v4 darebbe un messaggio in inglese. **Non usare `z.number()` nudo** |
@@ -221,7 +230,7 @@ vuoto), valorizzata = edit (form ripopolato via `useEffect` + `reset`).
 | `components/AzioniRiga.tsx` / `AzioniPrenotazione.tsx` | Azioni di riga generiche / quale azione ha senso in quale stato |
 | `components/BandaCoperti.tsx` | La banda che si riempie di coperti, soglie in `lib/coperti.ts` |
 | `components/IntestazionePagina.tsx` | Titolo + conteggio + azione primaria |
-| `components/SchermataMessaggio.tsx` | Schermata a tutta pagina: errore, accesso negato, config mancante, manutenzione |
+| `components/SchermataMessaggio.tsx` | Schermata a tutta pagina: errore, accesso negato, manutenzione |
 | `lib/manutenzione.ts` + `components/PortaleInManutenzione.tsx` | `V2-016`: con `VITE_MANUTENZIONE=true` (Vercel, entra nella build) `main.tsx` non monta l'app e mostra solo la schermata di manutenzione |
 | `components/Logo.tsx` | Il marchio, SVG che prende i colori del tema |
 | `components/ErrorBoundary.tsx` | Rete di sicurezza **sopra** il router (unico componente a classe: React non ha equivalente a hook) |
@@ -243,8 +252,8 @@ l'etichetta è `sr-only` (design con segnaposto).
 
 ## Test
 
-**133 test** con Vitest + Testing Library: impronta dello script del tema nella CSP di `vercel.json` (2, `V2-018`), portale in manutenzione (1 + 4 della lettura di `VITE_MANUTENZIONE`, `V2-016`), quali richieste portano il token (4, `V2-003`), lettura difensiva del token (10), rinnovo del token in
-`AuthProvider` (5) e suo momento (3), helper errori (5 + 5 del login + 2 del login con email non
+**139 test** con Vitest + Testing Library: impronta dello script del tema nella CSP di `vercel.json` (2, `V2-018`), portale in manutenzione (1 + 4 della lettura di `VITE_MANUTENZIONE`, `V2-016`), richieste verso `/api` e sessione scaduta su 401 (9, `V2-028`), middleware di Vercel (6, `V2-028`), sessione all'avvio di
+`AuthProvider` e uscita (5, `V2-028`), rinnovo del token (5) e suo momento (3), helper errori (5 + 5 del login + 2 del login con email non
 confermata, `V2-003` + 1 per campo + 2 del limite di richieste), pagina di conferma dell'email (3), messaggio della pagina pubblica sul 429 (1), regole di nome utente e campi numerici (8),
 `ProtectedRoute` su accesso e ruoli (6), scelta fascia oraria in `PrenotazioneModal` (5), limite
 online dei coperti in `PrenotazioneModal` (3), lunghezza del nome cliente in `PrenotazioneModal` (2, `V2-013`), «Salva» spento su fascia non disponibile solo in creazione in `PrenotazioneModal` (2, `V2-024`), stato delle fasce e limite online nella pagina
@@ -299,8 +308,8 @@ file con un link temporaneo e un nome costruito dal frontend.
 ### «Il mio account» (`V2-019`)
 
 `/account` (`AccountPage`, tutti i ruoli) si apre dal menu utente nella barra. Mostra i dati
-dell'account, il cambio password e «Cancella l'account» (`CancellaAccountCard`: conferma con la password in una finestra, poi logout e ritorno alla pagina del locale). Dopo il cambio il server manda un token nuovo e `useCambiaPassword`
-lo salva con `login(token)`: senza, la sessione in uso finirebbe insieme alle altre. Le date-ora del
+dell'account, il cambio password e «Cancella l'account» (`CancellaAccountCard`: conferma con la password in una finestra, poi logout e ritorno alla pagina del locale). Dopo il cambio il server scrive un token nuovo nel cookie e risponde con
+la `SessioneDTO`, che `useCambiaPassword` passa a `login(sessione)` per aggiornare la scadenza. Le date-ora del
 server si scrivono con `istanteInItalia` (`lib/date.ts`).
 
 ### Recupero password (`V2-019`)
@@ -308,7 +317,7 @@ server si scrivono con `istanteInItalia` (`lib/date.ts`).
 Dal login «Password dimenticata?» porta a `/password-dimenticata` (dietro `SetupGuard`, come il
 login), che mostra sempre lo stesso messaggio, esista o no l'email. Il link dell'email porta a
 `/reimposta-password?userId=…&token=…` (pubblica, fuori da `SetupGuard`, come `/conferma-email`).
-Entrambi gli endpoint sono in `SENZA_TOKEN`. Gli errori di Identity sulla nuova password arrivano sul
+Entrambi gli endpoint sono in `SENZA_SCADENZA`. Gli errori di Identity sulla nuova password arrivano sul
 campo `password` e la pagina li mostra sotto «Nuova password».
 
 ### Conferma dell'email (`V2-003`)
@@ -319,6 +328,6 @@ login ma mostra «Controlla la tua email». Il link dell'email porta a `/conferm
 e conferma da sola. Il login con email non confermata risponde 403 con `codice`
 `EMAIL_NON_CONFERMATA`: si riconosce con `emailNonConfermata()` di `lib/apiError.ts` (mai dal
 testo) e `LoginPage` mostra il pulsante «Rimanda l'email di conferma». L'Admin che crea lo Staff
-da `useCreateUser` non cambia nulla: quegli account nascono già confermati. ⚠️ Perché il server lo
-riconosca, **`register` deve viaggiare con il token**: non rimetterlo in `SENZA_TOKEN` di
-`lib/axios.ts` (c'era, e rendeva l'Admin un anonimo anche per il limite di `V2-011`).
+da `useCreateUser` non cambia nulla: quegli account nascono già confermati. Il server lo riconosce perché
+`register` viaggia con il cookie di sessione dell'Admin (dal `V2-028` il browser lo allega sempre;
+prima serviva tenerlo fuori da `SENZA_TOKEN`).

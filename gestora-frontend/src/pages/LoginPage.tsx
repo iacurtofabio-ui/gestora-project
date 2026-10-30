@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { paginaDiCasa } from '@/lib/navigazione'
 import apiClient from '@/lib/axios'
 import { Endpoints } from '@/lib/endpoints'
+import type { SessioneDTO } from '@/types/sessione'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
@@ -60,10 +61,11 @@ export default function LoginPage() {
   async function onSubmit(data: LoginForm) {
     setDaConfermare(false)
     try {
-      const response = await apiClient.post(Endpoints.auth.login, data)
-      // REV-014: il token non si ridecodifica qui. Ci pensa il context, che e' anche l'unico
-      // punto in cui la decodifica e' protetta; qui si usa il risultato gia' pronto.
-      const utente = login(response.data.token)
+      // V2-028: la risposta non contiene il token (sta nel cookie), solo utente e scadenza.
+      const response = await apiClient.post<SessioneDTO>(Endpoints.auth.login, data)
+      // REV-014: la risposta non si interpreta qui. Ci pensa il context, che e' anche l'unico
+      // punto in cui la lettura e' protetta; qui si usa il risultato gia' pronto.
+      const utente = login(response.data)
       navigate(paginaDiCasa(utente.roles))
     } catch (errore) {
       // Un token illeggibile non e' un problema di credenziali: dirlo com'e', altrimenti si

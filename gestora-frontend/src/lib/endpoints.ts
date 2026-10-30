@@ -25,6 +25,9 @@ export const Endpoints = {
     statoPrivacy: '/AuthenticationUser/stato-privacy',
     accettaPrivacy: '/AuthenticationUser/accetta-privacy',
     rinnovaToken: '/AuthenticationUser/rinnova-token',
+    // V2-028: «chi sono» (utente e scadenza della sessione nel cookie) e uscita (toglie il cookie).
+    sessione: '/AuthenticationUser/sessione',
+    logout: '/AuthenticationUser/logout',
     getUsers: '/AuthenticationUser/get-users',
     updateUser: (id: string) => `/AuthenticationUser/update-user/${id}`,
     deleteUser: (id: string) => `/AuthenticationUser/delete-user/${id}`,

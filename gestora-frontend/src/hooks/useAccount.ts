@@ -5,6 +5,7 @@ import apiClient from '@/lib/axios'
 import { Endpoints } from '@/lib/endpoints'
 import { useAuth } from '@/hooks/useAuth'
 import type { CambiaPasswordDTO, MioAccountDTO } from '@/types/account'
+import type { SessioneDTO } from '@/types/sessione'
 
 /** V2-019 — i dati dell'utente collegato. La chiave contiene l'id: un altro account non li riusa. */
 export function useMioAccount() {
@@ -38,16 +39,17 @@ export function useCancellaAccount() {
 
 /**
  * V2-019 — cambio password. Il server cambia il security stamp, quindi il token in uso non vale
- * più: risponde con uno nuovo, che si salva subito al posto del vecchio. Gli errori sui campi li
- * mostra il form, per questo qui non c'è `segnalaErrore`.
+ * più: ne scrive uno nuovo nel cookie (V2-028) e risponde con utente e scadenza, che si prendono
+ * subito al posto dei vecchi. Gli errori sui campi li mostra il form, per questo qui non c'è
+ * `segnalaErrore`.
  */
 export function useCambiaPassword() {
   const { login } = useAuth()
   return useMutation({
     mutationFn: (data: CambiaPasswordDTO) =>
-      apiClient.post<{ token: string }>(Endpoints.account.cambiaPassword, data).then((r) => r.data),
-    onSuccess: ({ token }) => {
-      login(token)
+      apiClient.post<SessioneDTO>(Endpoints.account.cambiaPassword, data).then((r) => r.data),
+    onSuccess: (sessione) => {
+      login(sessione)
       toast.success('Password cambiata. Le altre sessioni aperte sono state chiuse.')
     },
   })

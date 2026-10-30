@@ -46,9 +46,19 @@ namespace GestoraWebApi.Common
     /// consumi: <c>UseForwardedHeaders</c> rimuove l'anello che elabora, quindi guardando l'header
     /// a valle la catena sembra piu' corta.
     /// </para>
+    /// <para>
+    /// V2-028 — dalla v3.1 il sito chiama /api attraverso Vercel, e in fondo alla catena c'e' un
+    /// indirizzo di Vercel. Per quelle richieste l'indirizzo vero lo mette
+    /// <c>InoltroVercelMiddleware</c> in <c>HttpContext.Items</c>, solo se la parola segreta di
+    /// Vercel e' giusta, e ha la precedenza. La lettura della catena resta per le chiamate dirette
+    /// ad Azure (Swagger, curl) finche' non si bloccano.
+    /// </para>
     /// </summary>
     public static class IndirizzoClient
     {
+        /// <summary>Chiave di <c>HttpContext.Items</c> con l'indirizzo verificato da InoltroVercelMiddleware.</summary>
+        public const string ChiaveIndirizzoVerificato = "Gestora.IndirizzoVerificato";
+
         private const string HeaderInoltro = "X-Forwarded-For";
 
         /// <summary>
@@ -66,6 +76,10 @@ namespace GestoraWebApi.Common
         {
             if (context is null)
                 return null;
+
+            if (context.Items.TryGetValue(ChiaveIndirizzoVerificato, out var verificato)
+                && verificato is string indirizzoVerificato)
+                return Normalizza(indirizzoVerificato);
 
             if (context.Request.Headers.TryGetValue(HeaderInoltro, out var inoltrati))
             {

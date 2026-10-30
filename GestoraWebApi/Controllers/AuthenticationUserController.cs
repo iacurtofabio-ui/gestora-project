@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace GestoraWebApi.Controllers
 {
@@ -274,7 +277,41 @@ namespace GestoraWebApi.Controllers
             _logger.LogInformation("[{Controller}] - [{Method}]: Login riuscito per {UserId}",
                 nameof(AuthenticationUserController), nameof(Login), user.Id);
 
-            return Ok(new { Email = user.Email, Token = token });
+            // V2-028: il token va nel cookie HttpOnly, non nella risposta.
+            var scadenza = CookieSessione.Scrivi(Response, token);
+            return Ok(new SessioneDTO(user.Id, user.Email!, roles, scadenza));
+        }
+
+        /// <summary>
+        /// V2-028 — chi è collegato. Il frontend non può più leggere il token (sta in un cookie
+        /// HttpOnly) e chiede qui, all'avvio, se c'è una sessione aperta e di chi è. Email e ruoli
+        /// sono riletti adesso; la scadenza è quella del token in uso, che non cambia.
+        /// </summary>
+        [Authorize]
+        [HttpGet("sessione")]
+        public async Task<IActionResult> Sessione()
+        {
+            var user = await _userManager.FindByIdAsync(User.GetAuthenticatedUserId());
+            var exp = User.FindFirstValue(JwtRegisteredClaimNames.Exp);
+            if (user == null || !long.TryParse(exp, NumberStyles.Integer, CultureInfo.InvariantCulture, out var secondi))
+                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new SessioneDTO(user.Id, user.Email!, roles,
+                DateTimeOffset.FromUnixTimeSeconds(secondi).UtcDateTime));
+        }
+
+        /// <summary>
+        /// V2-028 — uscita: toglie il cookie con il token. Anonimo apposta: deve funzionare anche
+        /// con la sessione già scaduta. Il token in sé resta valido fino alla sua scadenza (al
+        /// massimo un'ora), ma non sta più da nessuna parte.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            CookieSessione.Cancella(Response);
+            return NoContent();
         }
 
         /// <summary>
@@ -309,7 +346,8 @@ namespace GestoraWebApi.Controllers
             var token = _tokenGenerator.GenerateToken(user.Id, user.Email!, roles,
                 await _userManager.GetSecurityStampAsync(user), inizioSessione.Value);
 
-            return Ok(new { Email = user.Email, Token = token });
+            var scadenza = CookieSessione.Scrivi(Response, token);
+            return Ok(new SessioneDTO(user.Id, user.Email!, roles, scadenza));
         }
 
         /// <summary>

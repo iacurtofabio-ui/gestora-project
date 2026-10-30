@@ -13,9 +13,8 @@ npm install
 npm run dev
 ```
 
-Richiede il backend (`GestoraWebApi`) attivo su `localhost:5099` e un file `.env.local` con
-`VITE_API_URL=http://localhost:5099/api` (non versionato, va ricreato su ogni macchina nuova).
-Ascolta su `localhost:5173`.
+Richiede il backend (`GestoraWebApi`) attivo su `localhost:5099`: Vite gli gira le chiamate a
+`/api` (`vite.config.ts`, dal `V2-028`). Ascolta su `localhost:5173`.
 
 ## Verifica
 
