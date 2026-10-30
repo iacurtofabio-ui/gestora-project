@@ -13,9 +13,9 @@ dei pareri e vetrina. Il piano in sei fasi (F0-F5, deciso il 15/10/2026, nello
 stimava 37 ore fino a fine gennaio 2027: è chiuso in due settimane. **Il lavoro si segue dal foglio
 *Task v3* del tracker** (§8): il prossimo passo è in cima alla Dashboard.
 **v3.1.0 decisa il 30/10/2026** (`V3.1-T01`): prima `V2-028` (token in cookie `HttpOnly`, chiamate
-che passano da Vercel, sviluppa Claude), poi la demo `/demo` (`V2-030`), poi il tag. `V2-028` è
-sviluppata su `v2` (30/10/2026, non ancora committata). **Prossimo passo: `V2-028-T09`**, la prova a
-vista in locale (Fabio); poi il commit, la prova su un'anteprima Vercel (`T12`) e il rilascio.
+che passano da Vercel, sviluppa Claude), poi la demo `/demo` (`V2-030`), poi il tag. **`V2-028` è
+in produzione dal 30/10/2026** (merge `c3f6e9c`, senza tag: il tag `v3.1.0` arriva dopo la demo).
+**Prossimo passo: `V2-030-T01`**, precisare la demo e decidere chi la sviluppa.
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -30,15 +30,20 @@ con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md
 | | |
 |---|---|
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
-| Frontend | `https://gestora-project-xi.vercel.app` — Vercel, punta al backend Azure |
+| Frontend | `https://gestora-project-xi.vercel.app` — Vercel; `/api` passa dal middleware di Vercel al backend Azure (`V2-028`). Azure rifiuta con 403 le chiamate dirette a `/api` |
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
-| Test | **527** backend (xUnit) + **139** frontend (Vitest) su `v2`, tutti verdi (in produzione 492 + 133) |
+| Test | **527** backend (xUnit) + **139** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
-| Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo tag **`v3.0.0`**, 29/10/2026, merge con la PR #8 `8ab0db0`) |
+| Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo merge `c3f6e9c`, 30/10/2026, `V2-028`; ultimo tag **`v3.0.0`**, 29/10/2026) |
 
-**Ultima cosa fatta** (30/10/2026): **`V2-028` sviluppata** (passi `T02`…`T08`, sviluppa Claude),
-su `v2` senza commit. Misurata con Fabio la catena degli indirizzi attraverso Vercel (`T02`). Il token
+**Ultima cosa fatta** (30/10/2026): **`V2-028` in produzione** (passi `T02`…`T12`, sviluppa Claude).
+Commit `48bc782` su `v2`, prova su un'anteprima Vercel, merge su `main` `c3f6e9c`. Rilascio di Fabio
+con la scaletta di Claude: `InoltroVercel__Segreto` su Azure, `API_AZURE` e `INOLTRO_SEGRETO` su
+Vercel, controlli da Chrome e Safari superati, poi blocco delle chiamate dirette acceso
+(`InoltroVercel__BloccaChiamateDirette`, Azure diretto `/api` = 403) e `VITE_API_URL` tolta da Vercel.
+Durante la prova un *Redeploy* dell'anteprima era finito in produzione (login impossibile per alcuni
+minuti, ripristinato; trappola in `RUNBOOK.md` §8). In dettaglio: Misurata con Fabio la catena degli indirizzi attraverso Vercel (`T02`). Il token
 sta nel cookie `HttpOnly` `__Host-gestora-sessione` (`CookieSessione`); le risposte di login,
 rinnovo e cambio password danno `SessioneDTO` senza token; nuovi `GET sessione` e `POST logout`.
 Protezione CSRF a doppio invio (`CookieCsrf`, `ProtezioneCsrfMiddleware`: 400 senza l'header

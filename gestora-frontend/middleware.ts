@@ -1,3 +1,6 @@
+// Vercel controlla i tipi di questo file con una configurazione propria, non con tsconfig.node.json:
+// senza questa riga non conosce `process` (errore TS2591 nel log di build, che pubblica lo stesso).
+/// <reference types="node" />
 /**
  * V2-028 — su Vercel ogni chiamata a /api passa da qui e prosegue verso il backend su Azure.
  *

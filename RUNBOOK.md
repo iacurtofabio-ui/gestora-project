@@ -346,7 +346,7 @@ locale basta mandare tre pareri di fila; per ricominciare, riavviare il backend.
 
 ### Il passaggio da Vercel e la parola segreta (`V2-028`)
 
-Dalla `v3.1.0` il token sta in un cookie `HttpOnly` e il browser non chiama più Azure: chiama `/api`
+Dal 30/10/2026 il token sta in un cookie `HttpOnly` e il browser non chiama più Azure: chiama `/api`
 sul sito Vercel, e il middleware di Vercel (`gestora-frontend/middleware.ts`) gira la richiesta ad
 Azure aggiungendo una **parola segreta** (header `X-Gestora-Inoltro`). Solo con quella il backend si
 fida dell'indirizzo del visitatore che Vercel scrive in `X-Real-IP`: senza, i limiti di richieste e
@@ -366,7 +366,9 @@ $b = New-Object byte[] 36; [Security.Cryptography.RandomNumberGenerator]::Create
 Non va scritta in chat, nei file o nei commit. Per cambiarla: nuova parola prima su Vercel, poi su
 Azure. Nei pochi minuti in mezzo le richieste passano, ma con l'indirizzo di Vercel.
 
-**Ordine del rilascio della `v3.1.0`** (una volta sola):
+**Ordine del rilascio di `V2-028`** (fatto il 30/10/2026; da rifare solo se si ricomincia da zero,
+per esempio con un nuovo progetto Vercel o un nuovo App Service). Oggi le variabili ci sono tutte e
+il blocco è **acceso**:
 1. Vercel: `API_AZURE` e `INOLTRO_SEGRETO` (Production e Preview)
 2. Azure: `InoltroVercel__Segreto` (senza il blocco)
 3. Merge `v2` → `main`; aspettare l'immagine nuova su Azure e la pubblicazione su Vercel
@@ -654,6 +656,11 @@ PowerShell 5.1 lo legge con la codifica sbagliata e gli accenti si rompono.
   confermare un *Redeploy* o un *Promote*, controllare l'ambiente scritto nella finestra: per le prove
   dev'essere **Preview**. Dopo, verificare che il sito di produzione chiami ancora il backend giusto
   (F12 → *Network*).
+- **Dopo un *Promote to Production* a mano le pubblicazioni di produzione restano *Staged*.** Al
+  rilascio di `V2-028` la pubblicazione del merge era pronta ma non online (in *Deployments*:
+  «Production · Staged», senza il dominio `gestora-project-xi.vercel.app`). Dopo ogni merge su `main`
+  che tocca il frontend controllare questa scritta; se c'è, **⋯ → Promote to Production**. Torna
+  utile: si può promuovere il frontend solo dopo che Azure ha preso il backend nuovo.
 - **Le variabili `VITE_...` restano di tipo *Config* (o *Plaintext*), non *Secret*** (oggi solo
   `VITE_MANUTENZIONE`): un *Secret* non arriva alla build nel modo che Vite si aspetta.
 - **SCM Basic Auth necessaria per il webhook di distribuzione continua.** Senza, Azure non
@@ -685,7 +692,7 @@ sezione *Rischi accettati e cose decise di non fare*).
 
 Fino alla `v3.0.0` il token stava in `localStorage`: qualsiasi script della pagina poteva leggerlo,
 e uno script estraneo (una libreria compromessa, un errore che lascia passare codice) poteva
-portarselo via e usarlo da un altro computer. Dalla `v3.1.0` il token sta in un **cookie
+portarselo via e usarlo da un altro computer. Dal 30/10/2026 (`V2-028`) il token sta in un **cookie
 `HttpOnly`**:
 
 - **JavaScript non lo vede.** Nemmeno dagli strumenti sviluppatore, scheda *Console*: il browser lo
