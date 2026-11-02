@@ -1,6 +1,6 @@
 # Gestora v2 — cosa resta da fare
 
-Aggiornato il **29/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
+Aggiornato il **30/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
 non è scritta qui, non è in programma.
 
 Il foglio *Fix e Bug* del tracker resta il registro dettagliato dei difetti, il foglio *Task v3* la
