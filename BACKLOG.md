@@ -1,6 +1,6 @@
 # Gestora v2 — cosa resta da fare
 
-Aggiornato il **30/10/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
+Aggiornato il **02/11/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
 non è scritta qui, non è in programma.
 
 Il foglio *Fix e Bug* del tracker resta il registro dettagliato dei difetti, il foglio *Task v3* la
@@ -12,7 +12,8 @@ vista d'insieme che si guarda per decidere cosa fare.
 ## Come si legge
 
 **Sigla**: una sola sequenza, `V2-001`, `V2-002`… Non si riusa mai un numero, nemmeno se una voce
-viene scartata.
+viene scartata. Dal 02/11/2026, con il piano di chiusura e il branch `v3`, le voci nuove (difetti
+del collaudo compresi) proseguono con `V3-000`, `V3-001`…; le `V2-xxx` restano lo storico.
 
 **Tipo**: `bug` (qualcosa che non funziona come dovrebbe) · `richiesta` (una cosa nuova chiesta
 da chi usa Gestora) · `miglioramento` (una cosa che c'è, fatta meglio) · `refactoring` (stesso
@@ -48,17 +49,35 @@ Modello da copiare:
 
 ## 🔵 Da fare
 
-### La v3.1.0
+### Il piano di chiusura del progetto (v3)
 
-La `v3.0.0` è in produzione dal **29/10/2026** (merge con la PR #8, `8ab0db0`, tag `v3.0.0`): il
-piano F0-F5 è chiuso e il portale è aperto. Il **30/10/2026** Fabio ha deciso la v3.1.0
-(`V3.1-T01`): prima `V2-028`, poi la demo `V2-030`, poi il tag `v3.1.0` (`V3.1-T02`). I passi sono
-nel foglio *Task v3*, ordine 510-800.
+Deciso da Fabio il **02/11/2026**. Gestora è un prodotto finito: ora deve vivere sia come software
+per i locali veri sia come **progetto portfolio** per recruiter e aziende. Il piano porta a termine
+cinque cose e poi chiude il progetto, che passa in manutenzione. Si lavora sul branch **`v3`**; le
+voci nuove hanno sigla `V3-xxx`. Tempo di Fabio: 3-4 ore a settimana, chiusura prevista fra fine
+gennaio e metà febbraio 2027. I passi, con l'ordine, sono nel foglio *Task v3* (ordine 900-1620).
 
 | Sigla | Fase | Tipo | Cosa | Chi sviluppa | Stato |
 |---|---|---|---|---|---|
-| `V2-028` | v3.1 | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, al posto di `localStorage`. Era un rischio accettato, riaperto da Fabio il 28/10/2026 dopo l'audit. Safari blocca i cookie fra siti diversi (`vercel.app` e `azurewebsites.net`): **strada scelta il 30/10/2026, il passaggio delle chiamate da Vercel** (`/api` girato ad Azure da un middleware Vercel), con una parola segreta perché Azure si fidi dell'indirizzo del visitatore che Vercel inoltra (serve ai limiti di richieste e al blocco per indirizzo). Gratis, 10-14 ore. Scartato il dominio proprio (Azure a pagamento). Misurata la catena il 30/10/2026 (`T02`); sviluppata lo stesso giorno (`T03`-`T08`): cookie `__Host-gestora-sessione`, doppio invio CSRF, parola segreta `InoltroVercel`, `gestora-frontend/middleware.ts`. **In produzione dal 30/10/2026** (merge `c3f6e9c`), blocco delle chiamate dirette ad Azure acceso; variabili in `RUNBOOK.md` §5 | Claude | fatto |
-| `V2-030` | v3.1 | nuova funzione | Demo interattiva `/demo` per i visitatori, descritta sotto: tour guidato, riquadro «Quanti siete?», pareri. Circa 8-10 ore, dopo `V2-028` | da decidere | da fare |
+| `V3-000` | 0 | studio | Riordino: tag `v3.1.0` con la sola `V2-028`, branch `v3`, piano scritto nei documenti e nel tracker | Fabio + Claude | in corso |
+| `V3-001` | 1 | studio | **Piano di test e collaudo completo**: documento con casi di test, test d'integrazione dell'API su PostgreSQL vero, prove nel browser con Playwright, controlli non funzionali, collaudo manuale, ripristino di prova del backup, correzione dei difetti (`v3.1.x`) | da decidere passo per passo | da fare |
+| `V3-002` | 2 | studio | **Studio di fattibilità multi-locale** (solo studio e decisione, lo sviluppo sarebbe una v4) | Claude scrive, Fabio decide | da fare |
+| `V3-003` | 3 | studio | **Piano di pubblicazione**: README, caso di studio, LinkedIn, video, CV, racconto da colloquio | Claude scrive, Fabio pubblica | da fare |
+| `V3-004` | 3 | nuova funzione | **Demo** per recruiter e visitatori, descritta sotto; poi tag `v3.2.0` | da decidere | da fare |
+| `V3-005` | 4 | studio | **Il libro**: studio per i colloqui tecnici e guida per altri progetti, in stile Clean Code, su .NET con React e Angular | Claude scrive, Fabio studia | da fare |
+| `V3-006` | 5 | studio | **Chiusura**: progetto in manutenzione, copie finali, attività ricorrenti | Claude + Fabio | da fare |
+
+Documenti di `V3-001`, `V3-002`, `V3-003` e `V3-005` su Claude Docs, come lo studio della v3.
+
+Ancora qui fino al tag `v3.1.0` (`V3.1-T02`):
+
+| Sigla | Tipo | Cosa | Chi sviluppa | Stato |
+|---|---|---|---|---|
+| `V2-028` | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, chiamate a `/api` che passano dal middleware di Vercel con una parola segreta. **In produzione dal 30/10/2026** (merge `c3f6e9c`), blocco delle chiamate dirette ad Azure acceso; variabili in `RUNBOOK.md` §5 | Claude | fatto |
+
+Sostituite il 02/11/2026 dal piano di chiusura: `V2-030` (demo come tour di schermate, 8-10 ore)
+da `V3-004`; `V2-005` (documentazione come linea guida per altri progetti) da `V3-005`. Scartata
+lo stesso giorno: `V2-004` (agente/MCP personalizzato), non serve a chiudere il progetto.
 
 Tolte il 29/10/2026, perché chiuse e in produzione con la `v3.0.0`: `V2-016` (F0, chiusura v2 e
 portale in manutenzione), `V2-017` (F1, .NET 10), `V2-018` (F2, robustezza), `V2-019` (F3, privacy e
@@ -68,48 +87,26 @@ della disponibilità), `V2-025` (report CSV), `V2-026` (niente dati sulla salute
 indirizzo) e `V2-029` (migliorie dell'audit). Scartate il 15/10/2026, prima di iniziare: `V2-020` e
 `V2-021` (prova pubblica con una sandbox in memoria per visitatore).
 
-### `V2-030`: la demo interattiva
+### `V3-004`: la demo
 
-Decisa il 30/10/2026 con la v3.1.0, dopo `V2-028`. È una **demo interattiva** (*product tour*): una
-pagina pubblica `/demo` nel frontend di produzione, senza login, senza backend, senza dati salvati.
-1. Tour guidato: 6-7 schermate vere di Gestora (zone → tavoli → fasce → prenotazione → dashboard),
-   ognuna con un punto evidenziato e una frase semplice.
-2. Riquadro «Quanti siete?»: il visitatore sceglie le persone e vede su una piantina finta quali
-   tavoli Gestora unisce. Richiede una piccola copia in TypeScript della regola di
-   `AssegnazioneTavoli`, dichiarata come dimostrativa.
-3. Il modulo dei pareri (`V2-022`) in fondo.
+Chiesta da Fabio il 02/11/2026 al posto del tour di `V2-030`. È **Gestora vera, usabile** da N
+visitatori insieme (recruiter, contatti LinkedIn), senza che niente si scriva in un database: come
+provare un prodotto prima di comprarlo. Le azioni che non si possono fare davvero (link di conferma
+dell'email dopo la registrazione e simili) si spiegano con una **guida a schermate**.
 
-Circa **8-10 ore** con il riquadro (scelto da Fabio). Niente seconda app su Azure né secondo
-progetto Vercel; nessun dato dei visitatori. Scartati gli strumenti esterni (Arcade, Storylane):
-aggiungono i loro cookie. Chi la sviluppa e i passi veri si decidono in `V2-030-T01`.
+Direzione proposta, da confermare in `V3-004-T01`:
+- **tutto nel browser**: la stessa app React costruita in «modalità demo», con un finto backend in
+  TypeScript che tiene i dati in memoria nella scheda del visitatore, così ognuno ha la sua sala;
+  le regole necessarie (assegnazione dei tavoli da `AssegnazioneTavoli`) stanno in una sola cartella
+  `demo/`. Scartato per ora un secondo backend .NET: Azure F1 ha un tetto di CPU giornaliero
+  condiviso con la produzione e il backend è legato a PostgreSQL;
+- **progetto Vercel separato** dallo stesso repository: in produzione non entra codice della demo;
+- ingresso con «Entra come Admin / Staff / Cliente», fascia «Demo» sempre visibile, pulsante
+  «Ricomincia la demo»;
+- guida a schermate per registrazione e conferma email, recupero password, cancellazione account,
+  job notturni, report CSV.
 
-### In pausa
-
-| Sigla | Tipo | Cosa | Chi sviluppa | Stato |
-|---|---|---|---|---|
-| `V2-004` | studio | Agente/MCP personalizzato per lavorare su Gestora | — | in pausa |
-| `V2-005` | studio | Documentazione del progetto come linea guida per metterne in piedi altri | — | in pausa |
-
-Tolta il 14/10/2026, perché chiusa e in produzione (rilascio del 14/10/2026, senza tag): `V2-003`
-(conferma dell'email alla registrazione, merge con la PR #5, `915c748`; il commit `086db11`,
-intitolato «invio email conferma registrazione», contiene tutta la voce). Provata a vista in locale
-e con una email reale via Brevo; la prova completa in produzione non è stata fatta, per non
-sporcare un database che ancora non ha il primo Admin.
-
-Tolte il 13/10/2026, perché chiuse e in produzione (rilascio del 13/10/2026, senza tag): `V2-012`
-(blocco dello spegnimento di una zona con prenotazioni da servire), `V2-013` (limite di 200
-caratteri su `NomeCliente`) e `V2-014` (registro attività: eliminazioni atomiche, modifica utente
-registrata).
-
-Tolte il 12/10/2026, perché chiuse e in produzione (rilascio del 12/10/2026, senza tag):
-`V2-011` (limiti di richieste su registrazione e verifica della disponibilità) e `V2-015`
-(pulizia notturna delle utenze mai usate, migration 8 applicata su Neon). Prima, il 09/10/2026:
-`V2-001`, `V2-002`, `V2-007`, `V2-008`, `V2-009`, `V2-010` e `V2-006` scartata. La loro storia
-resta nel tracker (fogli *Fix e Bug* e *Task v2*) e nella cronologia Git di questo file.
-
-### `V2-004`, `V2-005`
-Arrivano dal foglio *Appunti e Step* del tracker, dove erano segnate «Da fare». Da precisare
-insieme prima di iniziare.
+Stima da rifare in `V3-004-T01`: a occhio **25-40 ore** di sviluppo (Gestora ha 70 endpoint).
 
 ---
 
@@ -151,7 +148,8 @@ nostra le rende utili.
 
 **Altro**
 - Export dei report della dashboard (PDF) — il CSV delle prenotazioni per l'Admin è diventato `V2-025`
-- Gestione di più locali sullo stesso impianto (*multi-tenant*). Valutata il 15/10/2026: **per ora
+- Gestione di più locali sullo stesso impianto (*multi-tenant*), da approfondire nello studio
+  `V3-002`. Valutata il 15/10/2026: **per ora
   un locale**, la v3.0.0 resta così. Se arriva un secondo locale vero: subito si può dare
   un'installazione per locale (stesso codice, un'app Azure, un database Neon e un progetto Vercel
   ciascuno); il multi-tenant vero (colonna «locale» ovunque, filtri, ruoli per locale, privacy con
@@ -194,4 +192,6 @@ leggibilità. Cartelle e namespace sono già allineati, l'indirizzo resta com'è
 
 **Test automatici di concorrenza.** Il database finto usato nei test non applica gli indici unici
 né i lock, e introdurre un database vero nei test è sproporzionato. La verifica resta manuale
-(`RUNBOOK.md` §2).
+(`RUNBOOK.md` §2). **Riaperto il 02/11/2026**: i test d'integrazione su PostgreSQL vero
+(`V3-001-T02`) proveranno anche la concorrenza sul doppio tavolo; fatto quel passo, questo punto si
+toglie.

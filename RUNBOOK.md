@@ -197,8 +197,8 @@ pone. Prima e dopo, controllo su `"__EFMigrationsHistory"`.
 
 **Il commit, il push, il merge e il tag li fa Fabio.** Claude fornisce solo il messaggio.
 
-1. Commit su `v2`
-2. Merge `v2` → `main`
+1. Commit su `v3` (il branch di lavoro dal 02/11/2026; prima `v2`)
+2. Merge `v3` → `main`
 3. Tag sulla punta di `main`, poi push del tag
 4. Verifica in produzione
 
@@ -371,7 +371,7 @@ per esempio con un nuovo progetto Vercel o un nuovo App Service). Oggi le variab
 il blocco è **acceso**:
 1. Vercel: `API_AZURE` e `INOLTRO_SEGRETO` (Production e Preview)
 2. Azure: `InoltroVercel__Segreto` (senza il blocco)
-3. Merge `v2` → `main`; aspettare l'immagine nuova su Azure e la pubblicazione su Vercel
+3. Merge `v3` → `main`; aspettare l'immagine nuova su Azure e la pubblicazione su Vercel
 4. `/health` → `Healthy`; login da Chrome e da Safari (anche iPhone)
 5. Da Admin, sul sito: `https://gestora-project-xi.vercel.app/api/LogActivity/diagnostica-inoltro`
    deve dire `"passatoDaVercel": true` e `indirizzoUsatoDallApplicazione` uguale al proprio indirizzo
@@ -437,7 +437,7 @@ crescono). Il promemoria è un passo nel foglio *Task v3* del tracker: fatto il 
 migration 9.
 
 **Dove.** Fuori dal progetto, in
-`..\Gestora documentazione\Gestora_backup\` (accanto alla cartella del progetto; i comandi partono da lì), con il
+`..\Gestora documentazione\Gestora_backup\` (una cartella accanto a quella del progetto), con il
 nome `gestora_AAAA-MM-GG.dump`. Un backup contiene **dati personali** (email e nomi dei clienti,
 indirizzi IP nel registro attività) e le **chiavi che firmano i link email**: mai su Git, mai in
 una cartella condivisa. Si tengono le ultime 4 settimanali più quella fatta prima dell'ultima
@@ -449,6 +449,14 @@ la 18 e il comando `pg_dump` scritto da solo parte con la 17, che con Neon si ri
 per questo nei comandi c'è il percorso completo. Dal pannello Neon serve la *Connection string*
 **con *Connection pooling* spento**: l'host **senza** `-pooler` nel nome (`pg_dump` con il pooler
 può fallire).
+
+> ⚠️ **I comandi partono dalla cartella del progetto `Gestora`.** Il percorso
+> `..\Gestora documentazione` vuol dire «la cartella sopra, poi `Gestora documentazione`»: da un'altra
+> cartella (per esempio `GestoraWebApi`, dove a volte si apre il terminale di Visual Studio) porta
+> nel posto sbagliato e `pg_dump` risponde `No such file or directory`. Prima di cominciare,
+> controllare che il prompt finisca con `\Gestora>`; se no, `cd` nella cartella del progetto. In
+> alternativa si scrive il percorso completo della cartella dei backup. È successo due volte: il
+> 27/10/2026 il backup è rimasto un file vuoto (0 byte) senza che nessuno se ne accorgesse.
 
 **1. Cartella (solo la prima volta):**
 ```powershell
@@ -463,13 +471,18 @@ nella cronologia del terminale. Al posto di `<host>` e `<database>` i valori del
 `-Fc` è il formato compresso di PostgreSQL: si legge solo con `pg_restore`, ma permette di
 ripristinare anche una tabella sola.
 
-**3. Controllo veloce** che il file sia leggibile e contenga le tabelle (elenco del contenuto,
-non tocca nessun database):
+**3. Controllo veloce.** Prima la dimensione: se è **0** il backup non è riuscito, anche se il
+terminale non ha mostrato errori evidenti (il 02/11/2026 era di circa 68 KB):
+```powershell
+Get-Item "..\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump" | Select-Object Name, Length
+```
+Poi che il file sia leggibile e contenga le tabelle (elenco del contenuto, non tocca nessun
+database):
 ```powershell
 & "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" --list "..\Gestora documentazione\Gestora_backup\gestora_2026-10-19.dump" | Select-String "TABLE DATA"
 ```
 Devono comparire le tabelle di Gestora (`Prenotazioni`, `Utenti`, `DataProtectionKeys`,
-`__EFMigrationsHistory`…) e quelle `qrtz_*` di Quartz.
+`__EFMigrationsHistory`…, 14 in tutto) e le 11 `qrtz_*` di Quartz.
 
 **Senza riga di comando:** un **branch di Neon** (*Branches* → *Create branch* dal principale, es.
 `backup-2026-10-19`). Va bene come rete di sicurezza prima di una migration, ma **non sostituisce

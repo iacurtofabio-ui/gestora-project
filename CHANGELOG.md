@@ -3,6 +3,21 @@
 All notable changes to Gestora. Dates are in `YYYY-MM-DD` format; versions follow
 [Semantic Versioning](https://semver.org/). Development started in May 2026.
 
+## [3.1.0] — 2026-11-02
+
+Security release: the session no longer lives where a script could read it.
+
+### Security
+- The session token moved from browser storage to an **`HttpOnly` cookie** that JavaScript cannot
+  read, with double-submit **CSRF protection** (`X-XSRF-TOKEN` header).
+- Every API call now goes through the frontend's own domain: a Vercel middleware forwards `/api` to
+  the backend with a shared secret. The cookie stays first-party (Safari included), rate limits and
+  the wrong-password block see the real visitor address, and direct calls to the backend are
+  refused with 403.
+
+### Changed
+- Users signed in before this release have to sign in once more.
+
 ## [3.0.0] — 2026-10-29
 
 Production-ready release: privacy, security and a public showcase.

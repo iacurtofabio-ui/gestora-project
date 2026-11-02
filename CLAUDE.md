@@ -5,17 +5,24 @@
 
 ---
 
-## 1. Stato — aggiornato al 29/10/2026
+## 1. Stato — aggiornato al 02/11/2026
 
 **Gestora v3.0.0 è in produzione dal 29/10/2026**, production ready: privacy, sicurezza, modulo
 dei pareri e vetrina. Il piano in sei fasi (F0-F5, deciso il 15/10/2026, nello
 [studio di fattibilità](https://claude.ai/code/artifact/f31f316c-733c-4a5e-a93f-2f139c0518c1))
 stimava 37 ore fino a fine gennaio 2027: è chiuso in due settimane. **Il lavoro si segue dal foglio
 *Task v3* del tracker** (§8): il prossimo passo è in cima alla Dashboard.
-**v3.1.0 decisa il 30/10/2026** (`V3.1-T01`): prima `V2-028` (token in cookie `HttpOnly`, chiamate
-che passano da Vercel, sviluppa Claude), poi la demo `/demo` (`V2-030`), poi il tag. **`V2-028` è
-in produzione dal 30/10/2026** (merge `c3f6e9c`, senza tag: il tag `v3.1.0` arriva dopo la demo).
-**Prossimo passo: `V2-030-T01`**, precisare la demo e decidere chi la sviluppa.
+**Piano di chiusura del progetto, deciso il 02/11/2026** (`V3-000`…`V3-006`, dettaglio in
+`BACKLOG.md`): Gestora è un prodotto finito e ora vive sia per i locali veri sia come **progetto
+portfolio** per recruiter e aziende. In ordine: collaudo completo con correzione dei difetti
+(`V3-001`), studio multi-locale (`V3-002`), piano di pubblicazione (`V3-003`), demo usabile per i
+visitatori al posto del tour di `V2-030` (`V3-004`, poi tag `v3.2.0`), un libro in stile Clean Code
+su .NET con React e Angular per lo studio e i colloqui (`V3-005`), infine il progetto passa in
+manutenzione (`V3-006`). Tempo di Fabio 3-4 ore a settimana, chiusura prevista fra fine gennaio e
+metà febbraio 2027. **`V2-028` è in produzione dal 30/10/2026** (merge `c3f6e9c`); il tag `v3.1.0`
+si fa subito con la sola `V2-028` (`V3.1-T02`).
+Backup di novembre fatto il 02/11/2026 (`BACKUP-2026-11`).
+**Prossimo passo: il branch `v3` (`V3-000-T01`)**, poi il tag `v3.1.0` da `v3` (`V3.1-T02`).
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -35,7 +42,7 @@ con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md
 | Test | **527** backend (xUnit) + **139** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
-| Branch | si lavora su **`v2`**; `main` è quello pubblicato in produzione (ultimo merge `c3f6e9c`, 30/10/2026, `V2-028`; ultimo tag **`v3.0.0`**, 29/10/2026) |
+| Branch | si lavora su **`v3`** (dal 02/11/2026, aperto da `v2`, che resta come storico); `main` è quello pubblicato in produzione (ultimo merge `c3f6e9c`, 30/10/2026, `V2-028`; ultimo tag **`v3.0.0`**, 29/10/2026) |
 
 **Ultima cosa fatta** (30/10/2026): **`V2-028` in produzione** (passi `T02`…`T12`, sviluppa Claude).
 Commit `48bc782` su `v2`, prova su un'anteprima Vercel, merge su `main` `c3f6e9c`. Rilascio di Fabio
@@ -352,7 +359,7 @@ tracker.
    file dal tracciamento Git): Claude spiega cosa succede e perché, poi passa le istruzioni a
    Fabio. Non le esegue.
 4. **Controllare il branch** a inizio di ogni blocco di modifiche, non solo a inizio sessione:
-   si lavora su **`v2`**, mai direttamente su `main`.
+   si lavora su **`v3`** (dal 02/11/2026; prima `v2`), mai direttamente su `main`.
 5. **Comandi PowerShell su una riga sola**: i blocchi su più righe si concatenano male nel suo
    terminale.
 6. **Prima si decide chi sviluppa, poi si procede** (§4). Nessun file si modifica appena arriva
@@ -381,8 +388,9 @@ passo** è la prima riga, in ordine, non *Fatto* né *Bloccato*, e la Dashboard 
 («Prossimo passo»). A inizio sessione Claude legge *Task v3* e dice qual è il prossimo passo; a
 fine passo lo segna *Fatto* con date e nota. Quando si apre una fase, il suo «Precisare la
 richiesta» diventa i passi veri, già con il loro numero d'ordine. Un'urgenza (segnalazione dal
-locale) entra con un numero prima degli altri. *Task v2* è lo storico della v2: non si modifica,
-restano lì solo `V2-004` e `V2-005` in pausa. Il tracker non sta su Git: a ogni fase chiusa se ne
+locale) entra con un numero prima degli altri. *Task v2* è lo storico della v2 e non si modifica
+(`V2-004` scartata e `V2-005` sostituita da `V3-005` il 02/11/2026). Dal piano di chiusura le attività
+hanno sigla `V3-xxx-Tnn` e i capitoli del libro sono intercalati negli altri passi, uno a settimana. Il tracker non sta su Git: a ogni fase chiusa se ne
 salva una copia con la data in `Progetti_Tech\Personali\Gestora documentazione\Gestora_tracker_copie\` (fuori dal progetto;
 prima copia: `TrackGestora_2026-10-15_F0-chiusa.xlsx`).
 
@@ -391,7 +399,7 @@ aperta in **un solo posto**, il foglio dei task: così riaprendo il file si vede
 - **Task v3** (e *Task v2* per lo storico): l'unico foglio che segue il lavoro ancora da fare,
   rilascio compreso. Ogni passo è un task: *Da fare*, *In corso*, *Fatto*; *Bloccato* per una voce
   scartata o in pausa, con il motivo nelle note.
-- **Fix e Bug**: *Risolto* quando il difetto è corretto e verificato, anche se è solo su `v2`.
+- **Fix e Bug**: *Risolto* quando il difetto è corretto e verificato, anche se è solo sul branch di lavoro.
   Se manca il rilascio lo si scrive nella soluzione, con il task che lo segue (es. «su v2,
   rilascio nel task V2-009-T07»), non nello stato. *Aperto* = non ancora corretto.
 - **Appunti e Step**: diario di cosa si è fatto quel giorno, quindi la riga è *Fatto*. Quello che
