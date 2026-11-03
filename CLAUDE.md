@@ -19,10 +19,13 @@ portfolio** per recruiter e aziende. In ordine: collaudo completo con correzione
 visitatori al posto del tour di `V2-030` (`V3-004`, poi tag `v3.2.0`), un libro in stile Clean Code
 su .NET con React e Angular per lo studio e i colloqui (`V3-005`), infine il progetto passa in
 manutenzione (`V3-006`). Tempo di Fabio 3-4 ore a settimana, chiusura prevista fra fine gennaio e
-metà febbraio 2027. **`V2-028` è in produzione dal 30/10/2026** (merge `c3f6e9c`); il tag `v3.1.0`
-si fa subito con la sola `V2-028` (`V3.1-T02`).
-Backup di novembre fatto il 02/11/2026 (`BACKUP-2026-11`).
-**Prossimo passo: il branch `v3` (`V3-000-T01`)**, poi il tag `v3.1.0` da `v3` (`V3.1-T02`).
+metà febbraio 2027. **Tag `v3.1.0` il 02/11/2026** (`d700520`, release su GitHub): contiene
+`V2-028`, in produzione dal 30/10/2026, e i documenti del piano. Chiusa la fase 0 (`V3-000`).
+**[Piano di test](https://claude.ai/artifact/FBgbeNHA5j6Q1vP18BMADT) approvato il 03/11/2026**
+(`V3-001-T01`): 64 casi manuali, test d'integrazione su PostgreSQL, Playwright, controlli non
+funzionali, collaudo chiuso entro il 13/12/2026. Safari e iPhone esclusi dal collaudo.
+**Prossimo passo: `V3-005-T01`**, indice e primo capitolo del libro; dal 09/11 `V3-001-T02`, test
+d'integrazione (prima si decide chi sviluppa).
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -42,9 +45,16 @@ con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md
 | Test | **527** backend (xUnit) + **139** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
-| Branch | si lavora su **`v3`** (dal 02/11/2026, aperto da `v2`, che resta come storico); `main` è quello pubblicato in produzione (ultimo merge `c3f6e9c`, 30/10/2026, `V2-028`; ultimo tag **`v3.0.0`**, 29/10/2026) |
+| Branch | si lavora su **`v3`** (dal 02/11/2026, aperto da `v2`, che resta come storico); `main` è quello pubblicato in produzione (ultimo merge `d700520`, 02/11/2026, solo documenti; ultimo tag **`v3.1.0`**, 02/11/2026) |
 
-**Ultima cosa fatta** (30/10/2026): **`V2-028` in produzione** (passi `T02`…`T12`, sviluppa Claude).
+**Ultima cosa fatta** (02/11/2026): **fase 0 del piano di chiusura** (`V3-000`). Piano scritto nel
+tracker e nei documenti (`V3-000-T02`, Claude); backup di novembre (`BACKUP-2026-11`,
+`gestora_2026-11-02.dump`; il primo tentativo era fallito per il percorso relativo, avviso in
+`RUNBOOK.md` §6); branch `v3` da `v2` (`V3-000-T01`); merge `v3` → `main` senza commit di unione e
+tag **`v3.1.0`** con release su GitHub (`V3.1-T02`), `CHANGELOG.md` preparato da Claude. Solo
+documenti: né backend né frontend ripubblicati, `/health` Healthy.
+
+**`V2-028`** (30/10/2026): **in produzione** (passi `T02`…`T12`, sviluppa Claude).
 Commit `48bc782` su `v2`, prova su un'anteprima Vercel, merge su `main` `c3f6e9c`. Rilascio di Fabio
 con la scaletta di Claude: `InoltroVercel__Segreto` su Azure, `API_AZURE` e `INOLTRO_SEGRETO` su
 Vercel, controlli da Chrome e Safari superati, poi blocco delle chiamate dirette acceso

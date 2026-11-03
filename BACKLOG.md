@@ -59,8 +59,8 @@ gennaio e metà febbraio 2027. I passi, con l'ordine, sono nel foglio *Task v3* 
 
 | Sigla | Fase | Tipo | Cosa | Chi sviluppa | Stato |
 |---|---|---|---|---|---|
-| `V3-000` | 0 | studio | Riordino: tag `v3.1.0` con la sola `V2-028`, branch `v3`, piano scritto nei documenti e nel tracker | Fabio + Claude | in corso |
-| `V3-001` | 1 | studio | **Piano di test e collaudo completo**: documento con casi di test, test d'integrazione dell'API su PostgreSQL vero, prove nel browser con Playwright, controlli non funzionali, collaudo manuale, ripristino di prova del backup, correzione dei difetti (`v3.1.x`) | da decidere passo per passo | da fare |
+| `V3-000` | 0 | studio | Riordino: tag `v3.1.0` con la sola `V2-028`, branch `v3`, piano scritto nei documenti e nel tracker. **Fatto il 02/11/2026** (tag su `d700520`) | Fabio + Claude | fatto |
+| `V3-001` | 1 | studio | **Piano di test e collaudo completo**: documento con casi di test, test d'integrazione dell'API su PostgreSQL vero, prove nel browser con Playwright, controlli non funzionali, collaudo manuale, ripristino di prova del backup, correzione dei difetti (`v3.1.x`). [Piano di test](https://claude.ai/artifact/FBgbeNHA5j6Q1vP18BMADT) approvato il 03/11/2026, collaudo chiuso entro il 13/12/2026 | da decidere passo per passo | in corso |
 | `V3-002` | 2 | studio | **Studio di fattibilità multi-locale** (solo studio e decisione, lo sviluppo sarebbe una v4) | Claude scrive, Fabio decide | da fare |
 | `V3-003` | 3 | studio | **Piano di pubblicazione**: README, caso di studio, LinkedIn, video, CV, racconto da colloquio | Claude scrive, Fabio pubblica | da fare |
 | `V3-004` | 3 | nuova funzione | **Demo** per recruiter e visitatori, descritta sotto; poi tag `v3.2.0` | da decidere | da fare |
@@ -69,11 +69,9 @@ gennaio e metà febbraio 2027. I passi, con l'ordine, sono nel foglio *Task v3* 
 
 Documenti di `V3-001`, `V3-002`, `V3-003` e `V3-005` su Claude Docs, come lo studio della v3.
 
-Ancora qui fino al tag `v3.1.0` (`V3.1-T02`):
-
-| Sigla | Tipo | Cosa | Chi sviluppa | Stato |
-|---|---|---|---|---|
-| `V2-028` | miglioramento | Token di accesso in un cookie `HttpOnly` con protezione CSRF, chiamate a `/api` che passano dal middleware di Vercel con una parola segreta. **In produzione dal 30/10/2026** (merge `c3f6e9c`), blocco delle chiamate dirette ad Azure acceso; variabili in `RUNBOOK.md` §5 | Claude | fatto |
+Tolta il 02/11/2026, perché nel tag `v3.1.0`: `V2-028` (token in un cookie `HttpOnly`, protezione
+CSRF, chiamate a `/api` dal middleware di Vercel; in produzione dal 30/10/2026, variabili in
+`RUNBOOK.md` §5).
 
 Sostituite il 02/11/2026 dal piano di chiusura: `V2-030` (demo come tour di schermate, 8-10 ore)
 da `V3-004`; `V2-005` (documentazione come linea guida per altri progetti) da `V3-005`. Scartata

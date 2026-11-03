@@ -236,7 +236,10 @@ webhook Azure): se `/health` non risponde subito dopo il push, aspettare qualche
 sospettare un problema — è la catena che sta ancora girando, non necessariamente un guasto.
 
 **Numerazione:** la v2 si è chiusa con il tag `v2.1.0` (15/10/2026), la v3 con `v3.0.0`
-(29/10/2026, PR #8, con una release su GitHub). Il prossimo è `v3.1.0`. In generale: `vX.y.0` per un
+(29/10/2026, PR #8, con una release su GitHub). Poi `v3.1.0` (02/11/2026, `V2-028` e documenti):
+tag e release creati direttamente dalla pagina *Releases* di GitHub (*Create new tag on publish*,
+target `main`), senza riga di comando. Il prossimo è `v3.2.0` (demo e correttivi del collaudo;
+eventuali correttivi urgenti prima, come `v3.1.x`). In generale: `vX.y.0` per un
 gruppo di funzionalità o segnalazioni, `vX.y.z` per fix e correzioni. Un
 riordino interno, senza effetti sull'applicazione, può restare **senza tag**.
 
