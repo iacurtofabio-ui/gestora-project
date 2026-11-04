@@ -71,7 +71,7 @@ party the free tables can still host — so the app never promises a seat it can
 |---|---|
 | **Backend** | ASP.NET Core 10 (LTS) · Entity Framework Core 10 · PostgreSQL · ASP.NET Identity + JWT · Quartz.NET (scheduled jobs) · FluentValidation · AutoMapper · Serilog |
 | **Frontend** | React 19 · TypeScript · Vite · React Router v7 · TanStack Query v5 · React Hook Form + Zod · shadcn/ui · Tailwind CSS v4 |
-| **Tests** | xUnit + Moq (backend) · Vitest + Testing Library (frontend) |
+| **Tests** | xUnit + Moq and integration tests on a real PostgreSQL (backend) · Vitest + Testing Library (frontend) |
 | **Hosting** | Azure App Service (API, Docker image from Docker Hub) · Vercel (frontend) · Neon (PostgreSQL) |
 | **CI** | GitHub Actions: build and tests for both sides; when the backend changes on `main`, the Docker image is published only after the tests pass |
 
@@ -84,7 +84,8 @@ without the ceremony of Clean Architecture or DDD.
 ```
 Gestora/
 ├── GestoraWebApi/         ASP.NET Core API
-├── GestoraWebApi.Tests/   backend tests (xUnit)
+├── GestoraWebApi.Tests/   backend unit tests (xUnit)
+├── GestoraWebApi.IntegrationTests/   API tests on a real PostgreSQL
 ├── gestora-frontend/      React app
 └── Gestora.sln            solution: API + tests
 ```
@@ -150,6 +151,10 @@ first Admin.
 ```bash
 dotnet test Gestora.sln
 ```
+
+The integration tests start the real API against a `gestora_test` database they create on the local
+PostgreSQL. They reuse the connection string of the user secrets (or `GESTORA_TEST_DB`) and refuse to
+run on any other machine, because they empty the tables between tests.
 
 ```bash
 cd gestora-frontend && npm test && npm run lint && npm run build

@@ -1,6 +1,6 @@
 # Gestora v2 — cosa resta da fare
 
-Aggiornato il **02/11/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
+Aggiornato il **04/11/2026**. Questo è **l'unico elenco valido** delle cose aperte: se una cosa
 non è scritta qui, non è in programma.
 
 Il foglio *Fix e Bug* del tracker resta il registro dettagliato dei difetti, il foglio *Task v3* la
@@ -64,7 +64,7 @@ gennaio e metà febbraio 2027. I passi, con l'ordine, sono nel foglio *Task v3* 
 | `V3-002` | 2 | studio | **Studio di fattibilità multi-locale** (solo studio e decisione, lo sviluppo sarebbe una v4) | Claude scrive, Fabio decide | da fare |
 | `V3-003` | 3 | studio | **Piano di pubblicazione**: README, caso di studio, LinkedIn, video, CV, racconto da colloquio | Claude scrive, Fabio pubblica | da fare |
 | `V3-004` | 3 | nuova funzione | **Demo** per recruiter e visitatori, descritta sotto; poi tag `v3.2.0` | da decidere | da fare |
-| `V3-005` | 4 | studio | **Il libro**: studio per i colloqui tecnici e guida per altri progetti, in stile Clean Code, su .NET con React e Angular | Claude scrive, Fabio studia | da fare |
+| `V3-005` | 4 | studio | **Il libro**: studio per i colloqui tecnici e guida per altri progetti, in stile Clean Code, su .NET con React e Angular. [Indice e capitolo 1](https://claude.ai/artifact/KiryvEdv8YTcwZTMQXSV5A) approvati il 04/11/2026 | Claude scrive, Fabio studia | in corso |
 | `V3-006` | 5 | studio | **Chiusura**: progetto in manutenzione, copie finali, attività ricorrenti | Claude + Fabio | da fare |
 
 Documenti di `V3-001`, `V3-002`, `V3-003` e `V3-005` su Claude Docs, come lo studio della v3.
@@ -188,8 +188,3 @@ namespace, classe, indirizzo dell'endpoint e tabella. Uniformarlo vorrebbe dire 
 l'indirizzo di un endpoint, cioè rompere i collegamenti del frontend, per un guadagno di sola
 leggibilità. Cartelle e namespace sono già allineati, l'indirizzo resta com'è.
 
-**Test automatici di concorrenza.** Il database finto usato nei test non applica gli indici unici
-né i lock, e introdurre un database vero nei test è sproporzionato. La verifica resta manuale
-(`RUNBOOK.md` §2). **Riaperto il 02/11/2026**: i test d'integrazione su PostgreSQL vero
-(`V3-001-T02`) proveranno anche la concorrenza sul doppio tavolo; fatto quel passo, questo punto si
-toglie.

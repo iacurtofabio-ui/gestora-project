@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.9.12128.139 oobstable
+VisualStudioVersion = 18.9.12128.139
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestoraWebApi", "GestoraWebApi\GestoraWebApi.csproj", "{8E47E8E9-2372-4C4E-9443-13D35F475CB4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestoraWebApi.Tests", "GestoraWebApi.Tests\GestoraWebApi.Tests.csproj", "{F4B2341F-60F7-4F9D-A2D3-6DA39DCDD131}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestoraWebApi.IntegrationTests", "GestoraWebApi.IntegrationTests\GestoraWebApi.IntegrationTests.csproj", "{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,18 @@ Global
 		{F4B2341F-60F7-4F9D-A2D3-6DA39DCDD131}.Release|x64.Build.0 = Release|Any CPU
 		{F4B2341F-60F7-4F9D-A2D3-6DA39DCDD131}.Release|x86.ActiveCfg = Release|Any CPU
 		{F4B2341F-60F7-4F9D-A2D3-6DA39DCDD131}.Release|x86.Build.0 = Release|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Debug|x64.Build.0 = Debug|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Debug|x86.Build.0 = Debug|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Release|Any CPU.Build.0 = Release|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Release|x64.ActiveCfg = Release|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Release|x64.Build.0 = Release|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Release|x86.ActiveCfg = Release|Any CPU
+		{991E7DEE-6BD8-4F46-AA7F-7B04761ED525}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

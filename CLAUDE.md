@@ -5,7 +5,7 @@
 
 ---
 
-## 1. Stato — aggiornato al 02/11/2026
+## 1. Stato — aggiornato al 04/11/2026
 
 **Gestora v3.0.0 è in produzione dal 29/10/2026**, production ready: privacy, sicurezza, modulo
 dei pareri e vetrina. Il piano in sei fasi (F0-F5, deciso il 15/10/2026, nello
@@ -24,8 +24,12 @@ metà febbraio 2027. **Tag `v3.1.0` il 02/11/2026** (`d700520`, release su GitHu
 **[Piano di test](https://claude.ai/artifact/FBgbeNHA5j6Q1vP18BMADT) approvato il 03/11/2026**
 (`V3-001-T01`): 64 casi manuali, test d'integrazione su PostgreSQL, Playwright, controlli non
 funzionali, collaudo chiuso entro il 13/12/2026. Safari e iPhone esclusi dal collaudo.
-**Prossimo passo: `V3-005-T01`**, indice e primo capitolo del libro; dal 09/11 `V3-001-T02`, test
-d'integrazione (prima si decide chi sviluppa).
+**[Libro](https://claude.ai/artifact/KiryvEdv8YTcwZTMQXSV5A) avviato il 04/11/2026**: indice e
+capitolo 1 approvati (`V3-005-T01`). Nel libro niente voci interne del progetto.
+**Test d'integrazione scritti il 04/11/2026** (`V3-001-T02`, sviluppa Claude): 55 test su PostgreSQL
+vero, verdi in locale.
+**Prossimo passo: chiudere `V3-001-T02`** con la CI verde su `v3`, poi `V3-005-T02` (capitolo 2) e
+`V3-001-T03` (Playwright).
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -42,7 +46,7 @@ con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel; `/api` passa dal middleware di Vercel al backend Azure (`V2-028`). Azure rifiuta con 403 le chiamate dirette a `/api` |
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
-| Test | **527** backend (xUnit) + **139** frontend (Vitest), tutti verdi |
+| Test | **527** unitari e **55** d'integrazione del backend (xUnit, i secondi su PostgreSQL vero) + **139** frontend (Vitest), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
 | Branch | si lavora su **`v3`** (dal 02/11/2026, aperto da `v2`, che resta come storico); `main` è quello pubblicato in produzione (ultimo merge `d700520`, 02/11/2026, solo documenti; ultimo tag **`v3.1.0`**, 02/11/2026) |
@@ -219,10 +223,11 @@ Non è "Clean Architecture" né "DDD". Per un progetto di questa dimensione la s
 ```
 Gestora/
 ├── GestoraWebApi/        backend (.NET) — vedi il suo CLAUDE.md
-├── GestoraWebApi.Tests/  test del backend (xUnit)
+├── GestoraWebApi.Tests/  test unitari del backend (xUnit)
+├── GestoraWebApi.IntegrationTests/  test dell'API su PostgreSQL vero
 ├── gestora-frontend/     frontend (React) — vedi il suo CLAUDE.md
 ├── docs/archivio/        documenti chiusi, sola lettura
-├── Gestora.sln           soluzione .NET: API + test, si apre questa in Visual Studio
+├── Gestora.sln           soluzione .NET: API + i due progetti di test, si apre questa in Visual Studio
 ├── global.json           versione dell'SDK .NET
 ├── CLAUDE.md             questo file
 ├── BACKLOG.md            cosa resta da fare

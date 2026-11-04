@@ -2,23 +2,42 @@ name: CI Backend
 
 on:
   push:
-    branches: [main, dev, v2]
+    branches: [main, dev, v2, v3]
     paths:
       - 'GestoraWebApi/**'
       - 'GestoraWebApi.Tests/**'
+      - 'GestoraWebApi.IntegrationTests/**'
       - 'Gestora.sln'
       - 'global.json'
+      - '.github/workflows/ci-backend.yml'
   pull_request:
-    branches: [main, dev, v2]
+    branches: [main, dev, v2, v3]
     paths:
       - 'GestoraWebApi/**'
       - 'GestoraWebApi.Tests/**'
+      - 'GestoraWebApi.IntegrationTests/**'
       - 'Gestora.sln'
       - 'global.json'
+      - '.github/workflows/ci-backend.yml'
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    # I test d'integrazione lavorano su un PostgreSQL vero. Solo un contenitore usa e getta:
+    # la password non è un segreto, il database nasce e muore con il giro della CI.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +47,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Si lavora dalla radice: la soluzione Gestora.sln contiene sia l'API sia i test.
+      # Si lavora dalla radice: la soluzione Gestora.sln contiene l'API e i due progetti di test.
       - name: Restore
         run: dotnet restore Gestora.sln
 
@@ -37,3 +56,5 @@ jobs:
 
       - name: Test
         run: dotnet test Gestora.sln --no-build --configuration Release --logger "console;verbosity=normal"
+        env:
+          GESTORA_TEST_DB: Host=localhost;Port=5432;Username=postgres;Password=postgres

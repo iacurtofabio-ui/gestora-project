@@ -12,8 +12,9 @@ tabelle `QRTZ_*` — **non create automaticamente**, va eseguito `Scripts/quartz
 
 ## Verifica prima di dire "fatto"
 
-Dalla cartella principale del repo (i test stanno in `GestoraWebApi.Tests/`, accanto a questa
-cartella: lanciato da qui dentro, `dotnet test` non trova nessun test).
+Dalla cartella principale del repo (i test stanno in `GestoraWebApi.Tests/` e
+`GestoraWebApi.IntegrationTests/`, accanto a questa cartella: lanciato da qui dentro, `dotnet test`
+non trova nessun test).
 
 ```
 dotnet build Gestora.sln      # deve completare senza errori
@@ -424,6 +425,15 @@ fisso).
   (`AddServerHeader = false`).
 
 ## Test
+
+`GestoraWebApi.IntegrationTests/` (`V3-001-T02`, **55 test**) — l'API vera con `WebApplicationFactory`
+su PostgreSQL vero, database `gestora_test`, pulito con Respawn prima di ogni test. Ambiente
+`Integrazione`, non Development: niente user secrets con le chiavi vere. Si sostituiscono solo Quartz
+(spento: le sue tabelle non stanno nelle migration, i job si chiamano dai service), `IInvioEmail`
+(`PostaInMemoria`, il test legge il link) e `IClock` (`OrologioDiProva`, ora vera più uno spostamento:
+`VaiA(giorno, ora)`). `ClientGestora` tiene i cookie, rimanda l'header CSRF e ha un indirizzo proprio,
+così i limiti di richieste non si sommano fra i test. Un endpoint nuovo va aggiunto alla `Matrice` di
+`RuoliTests`, altrimenti il test fallisce. Un test nuovo eredita da `TestIntegrazione`.
 
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
 motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri, il cookie di sessione, la protezione CSRF e il passaggio da Vercel (`V2-028`). **527 test totali.**
