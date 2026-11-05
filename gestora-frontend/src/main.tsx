@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -10,8 +10,13 @@ import PortaleInManutenzione from '@/components/PortaleInManutenzione'
 import { inManutenzione } from '@/lib/manutenzione'
 import { queryClient } from '@/lib/queryClient'
 import { DevtoolsQuery } from '@/components/DevtoolsQuery'
+import { PageLoading } from '@/components/PageState'
 import './index.css'
 import { Toaster } from 'sonner'
+
+// V3-009: dopo un rilascio i file delle pagine cambiano nome. Chi aveva il sito aperto chiederebbe
+// un file che non c'e' piu': si ricarica la pagina e prende quelli nuovi.
+window.addEventListener('vite:preloadError', () => window.location.reload())
 
 const radice = createRoot(document.getElementById('root')!)
 
@@ -29,7 +34,9 @@ if (inManutenzione) {
         <ThemeProvider>
           <AuthProvider>
             <QueryClientProvider client={queryClient}>
-              <RouterProvider router={router} />
+              <Suspense fallback={<PageLoading />}>
+                <RouterProvider router={router} />
+              </Suspense>
               <DevtoolsQuery />
               <Toaster richColors position="top-right" />
             </QueryClientProvider>

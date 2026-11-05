@@ -39,9 +39,11 @@ export default defineConfig({
       stdout: 'pipe',
     },
     {
-      command: 'npx vite --port 5174 --strictPort',
+      // La build vera e non il server di sviluppo: si prova quello che si pubblica, e il server di
+      // sviluppo si è spento due volte a metà giro.
+      command: 'npm run build && npx vite preview --port 5174 --strictPort',
       url: FRONTEND,
-      timeout: 60_000,
+      timeout: 120_000,
       reuseExistingServer: false,
       env: { API_LOCALE: BACKEND },
     },

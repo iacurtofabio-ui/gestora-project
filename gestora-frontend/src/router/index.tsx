@@ -1,28 +1,35 @@
+// Qui si dichiarano le rotte: il ricaricamento a caldo di Vite su questo file non serve.
+/* eslint-disable react-refresh/only-export-components */
+import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import SetupGuard from './SetupGuard'
 import RedirectSeAutenticato from './RedirectSeAutenticato'
 import LandingPage from '@/pages/LandingPage'
-import LoginPage from '@/pages/LoginPage'
-import RegisterPage from '@/pages/RegisterPage'
-import ConfermaEmailPage from '@/pages/ConfermaEmailPage'
-import PrivacyPage from '@/pages/PrivacyPage'
-import TerminiPage from '@/pages/TerminiPage'
-import PareriPage from '@/pages/PareriPage'
-import PasswordDimenticataPage from '@/pages/PasswordDimenticataPage'
-import ReimpostaPasswordPage from '@/pages/ReimpostaPasswordPage'
-import AppLayout from '@/layouts/AppLayout'
-import PrenotazionePage from '@/pages/PrenotazionePage'
-import DashboardPage from '@/pages/DashboardPage'
-import ZonePage from '@/pages/ZonePage'
-import PostazionePage from '@/pages/PostazionePage'
-import FasciaOrariaPage from '@/pages/FasciaOrariaPage'
-import AdminUtentiPage from '@/pages/AdminUtentiPage'
-import AccountPage from '@/pages/AccountPage'
-import UnauthorizedPage from '@/pages/UnauthorizedPage'
-import NotFoundPage from '@/pages/NotFoundPage'
-import SetupPage from '@/pages/SetupPage'
 import RouteErrorPage from './RouteErrorPage'
+
+// V3-009: nel primo file resta solo la vetrina, che apre chi arriva dall'esterno. Il resto si scarica
+// quando serve: il visitatore non deve caricare le pagine di Admin e Staff. Il Suspense sta in
+// main.tsx e, per le pagine riservate, in AppLayout.
+const AppLayout = lazy(() => import('@/layouts/AppLayout'))
+const LoginPage = lazy(() => import('@/pages/LoginPage'))
+const RegisterPage = lazy(() => import('@/pages/RegisterPage'))
+const ConfermaEmailPage = lazy(() => import('@/pages/ConfermaEmailPage'))
+const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
+const TerminiPage = lazy(() => import('@/pages/TerminiPage'))
+const PareriPage = lazy(() => import('@/pages/PareriPage'))
+const PasswordDimenticataPage = lazy(() => import('@/pages/PasswordDimenticataPage'))
+const ReimpostaPasswordPage = lazy(() => import('@/pages/ReimpostaPasswordPage'))
+const PrenotazionePage = lazy(() => import('@/pages/PrenotazionePage'))
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
+const ZonePage = lazy(() => import('@/pages/ZonePage'))
+const PostazionePage = lazy(() => import('@/pages/PostazionePage'))
+const FasciaOrariaPage = lazy(() => import('@/pages/FasciaOrariaPage'))
+const AdminUtentiPage = lazy(() => import('@/pages/AdminUtentiPage'))
+const AccountPage = lazy(() => import('@/pages/AccountPage'))
+const UnauthorizedPage = lazy(() => import('@/pages/UnauthorizedPage'))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
+const SetupPage = lazy(() => import('@/pages/SetupPage'))
 
 // REV-014: senza errorElement, un'eccezione dentro una pagina finisce all'error boundary interno
 // di React Router, che mostra "Unexpected Application Error!" con lo stack trace. Va agganciato a

@@ -25,12 +25,14 @@ metà febbraio 2027. **Tag `v3.1.0` il 02/11/2026** (`d700520`, release su GitHu
 (`V3-001-T01`): 64 casi manuali, test d'integrazione su PostgreSQL, Playwright, controlli non
 funzionali, collaudo chiuso entro il 13/12/2026. Safari e iPhone esclusi dal collaudo.
 **[Libro](https://claude.ai/artifact/KiryvEdv8YTcwZTMQXSV5A) avviato il 04/11/2026**: indice e
-capitoli 1 e 2 approvati (`V3-005-T01`, `T02`). Nel libro niente voci interne del progetto.
+capitoli 1, 2 e 3 approvati (`V3-005-T01`…`T03`). Nel libro niente voci interne del progetto.
 **Test d'integrazione chiusi il 04/11/2026** (`V3-001-T02`, sviluppa Claude, commit `6603847`): 55
 test su PostgreSQL vero, verdi in locale e in CI, che ora parte anche su `v3`.
 **Prove nel browser fatte il 04/11/2026** (`V3-001-T03`, sviluppa Claude): 24 test con Playwright in
 Chromium e Firefox, `npm run test:e2e`. Trovato e corretto un difetto di accessibilità (`V3-007`).
-**Prossimo passo: `V3-005-T03`**, capitolo 3 del libro; poi `V3-001-T04`, controlli non funzionali.
+Capitolo 3 del libro approvato il 05/11/2026. Controlli non funzionali (`V3-001-T04`) quasi chiusi: esiti nel
+Piano di test, pagine caricate su richiesta (`V3-009`, da rimisurare in produzione dopo il rilascio).
+**Prossimo passo: Fabio installa OWASP ZAP**, poi scansione passiva in locale e chiusura di `V3-001-T04`.
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -47,7 +49,7 @@ con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel; `/api` passa dal middleware di Vercel al backend Azure (`V2-028`). Azure rifiuta con 403 le chiamate dirette a `/api` |
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
-| Test | **530** unitari e **55** d'integrazione del backend (xUnit, i secondi su PostgreSQL vero) + **139** frontend (Vitest) + **24** prove nel browser (Playwright, in due browser), tutti verdi |
+| Test | **530** unitari e **57** d'integrazione del backend (xUnit, i secondi su PostgreSQL vero) + **139** frontend (Vitest) + **24** prove nel browser (Playwright, in due browser), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
 | Branch | si lavora su **`v3`** (dal 02/11/2026, aperto da `v2`, che resta come storico); `main` è quello pubblicato in produzione (ultimo merge `d700520`, 02/11/2026, solo documenti; ultimo tag **`v3.1.0`**, 02/11/2026) |

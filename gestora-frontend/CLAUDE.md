@@ -160,6 +160,8 @@ Due condizioni attive sulla radice: `SetupGuard` (senza un Admin si va a `/setup
 route: Admin/Staff, Admin/Staff/Cliente, Admin-only. Nuove pagine vanno registrate qui, nel
 gruppo di ruolo corretto — non creare controlli di ruolo ad-hoc nella pagina stessa.
 
+**Pagine su richiesta** (`V3-009`): in `router/index.tsx` solo `LandingPage` è importata normalmente, tutto il resto usa `lazy()`. Una pagina nuova va dichiarata allo stesso modo. Il `Suspense` sta in `main.tsx` e, per l'area riservata, attorno all'`Outlet` di `AppLayout`, così la barra resta a schermo. `vite:preloadError` in `main.tsx` ricarica la pagina se dopo un rilascio un file non esiste più.
+
 ## Ruoli utente — sempre array, mai stringa singola
 
 ⚠️ Un utente **può avere più ruoli** (vedi `GestoraWebApi/CLAUDE.md` sezione RBAC). Il JWT
@@ -263,7 +265,7 @@ pagina di casa per ruolo (5), navigazione per giorno della Dashboard (1), filtri
 `PrenotazionePage` e salto al giorno dopo una creazione (3), informativa e termini (2, `V2-019`), presa visione nell'area riservata (3) e casella in registrazione (2), recupero password (4), «Il mio account» (3), cancellazione dell'account (3, `V2-019`), report CSV e date del periodo (5, `V2-025`), modulo dei pareri (5, `V2-022`), avviso «niente dati sulla salute» sulle note (1, `V2-026`).
 
 **Prove nel browser** (`V3-001-T03`): cartella `e2e/`, `npm run test:e2e`, 24 test in Chromium e
-Firefox con axe per l'accessibilità. `playwright.config.ts` accende backend e frontend su porte proprie
+Firefox con axe per l'accessibilità. `playwright.config.ts` accende il backend e la build vera (`vite preview`, non il server di sviluppo) su porte proprie
 (5199, 5174), `e2e/avvia-backend.mjs` rifà il database `gestora_e2e` con `--seed-e2e`. `e2e/supporto.ts`
 ha gli aiuti comuni: ogni test ha il suo `X-Forwarded-For`, altrimenti scatta il limite di 5 accessi al
 minuto; `leggiEmail` legge i link da `Email:CartellaSviluppo`. Tutto quello che producono sta in

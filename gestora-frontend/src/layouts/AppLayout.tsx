@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { PresaVisionePrivacy } from '@/components/PresaVisionePrivacy'
+import { PageLoading } from '@/components/PageState'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -212,7 +213,9 @@ export default function AppLayout() {
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 md:px-6 md:py-6">
         <PresaVisionePrivacy>
-          <Outlet />
+          <Suspense fallback={<PageLoading />}>
+            <Outlet />
+          </Suspense>
         </PresaVisionePrivacy>
       </main>
     </div>

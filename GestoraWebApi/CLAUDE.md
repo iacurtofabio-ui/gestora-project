@@ -426,7 +426,7 @@ fisso).
 
 ## Test
 
-`GestoraWebApi.IntegrationTests/` (`V3-001-T02`, **55 test**) — l'API vera con `WebApplicationFactory`
+`GestoraWebApi.IntegrationTests/` (`V3-001-T02`, **57 test**) — l'API vera con `WebApplicationFactory`
 su PostgreSQL vero, database `gestora_test`, pulito con Respawn prima di ogni test. Ambiente
 `Integrazione`, non Development: niente user secrets con le chiavi vere. Si sostituiscono solo Quartz
 (spento: le sue tabelle non stanno nelle migration, i job si chiamano dai service), `IInvioEmail`
