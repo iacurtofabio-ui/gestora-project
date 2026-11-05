@@ -262,6 +262,14 @@ di riga e tastiera in `AzioniPrenotazione` (16, incluso l'eliminazione solo sull
 pagina di casa per ruolo (5), navigazione per giorno della Dashboard (1), filtri nell'URL di
 `PrenotazionePage` e salto al giorno dopo una creazione (3), informativa e termini (2, `V2-019`), presa visione nell'area riservata (3) e casella in registrazione (2), recupero password (4), «Il mio account» (3), cancellazione dell'account (3, `V2-019`), report CSV e date del periodo (5, `V2-025`), modulo dei pareri (5, `V2-022`), avviso «niente dati sulla salute» sulle note (1, `V2-026`).
 
+**Prove nel browser** (`V3-001-T03`): cartella `e2e/`, `npm run test:e2e`, 24 test in Chromium e
+Firefox con axe per l'accessibilità. `playwright.config.ts` accende backend e frontend su porte proprie
+(5199, 5174), `e2e/avvia-backend.mjs` rifà il database `gestora_e2e` con `--seed-e2e`. `e2e/supporto.ts`
+ha gli aiuti comuni: ogni test ha il suo `X-Forwarded-For`, altrimenti scatta il limite di 5 accessi al
+minuto; `leggiEmail` legge i link da `Email:CartellaSviluppo`. Tutto quello che producono sta in
+`node_modules/.e2e`. I test condividono il database: un Cliente nuovo per test (`creaCliente`), nomi con
+il browser dentro. Ogni giorno ha due fasce: `00:05–23:59` per prenotare e una già finita, per completare.
+
 > ⚠️ `npm test` **non controlla i tipi**. Serve anche `npm run build`.
 >
 > ⚠️ `hooks/usePrenotazioni.ts` è **mockato per intero** nei test di `PrenotazioneModal`. Per

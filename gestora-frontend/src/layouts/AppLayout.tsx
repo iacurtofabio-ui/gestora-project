@@ -156,7 +156,7 @@ export default function AppLayout() {
                   variant="ghost"
                   size="icon-sm"
                   className="ml-1 rounded-full bg-secondary text-secondary-foreground"
-                  aria-label="Menu utente"
+                  aria-label={`Menu utente ${iniziali(user?.email)}`}
                 >
                   <span className="text-nota font-semibold">{iniziali(user?.email)}</span>
                 </Button>

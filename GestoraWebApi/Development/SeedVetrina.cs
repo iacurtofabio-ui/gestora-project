@@ -100,7 +100,7 @@ namespace GestoraWebApi.Development
         /// Crea l'utente o lo riallinea (password, ruolo unico). L'informativa risulta gia' vista,
         /// cosi' la finestra di presa visione non copre le schermate.
         /// </summary>
-        private static async Task<ApplicationUser> PreparaUtenteAsync(
+        internal static async Task<ApplicationUser> PreparaUtenteAsync(
             UserManager<ApplicationUser> userManager, string nome, string email, string ruolo,
             string? versionePrivacy, IClock clock)
         {

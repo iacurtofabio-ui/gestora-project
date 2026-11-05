@@ -411,3 +411,15 @@
     opacity: 0.7;
   }
 }
+
+/*
+ * Le notifiche di sonner (richColors) restano sempre chiare, anche nel tema scuro: per questo qui
+ * ci sono colori fissi e non i token. Quelli di serie stanno sotto 4.5:1 sul loro sfondo: l'ha
+ * trovato il controllo di accessibilità delle prove con Playwright (V3-007).
+ */
+:root [data-sonner-toaster][data-sonner-theme='light'] {
+  --success-text: hsl(140, 100%, 22%);
+  --info-text: hsl(210, 92%, 35%);
+  --warning-text: hsl(25, 100%, 30%);
+  --error-text: hsl(360, 100%, 38%);
+}

@@ -94,7 +94,7 @@ export default function PareriPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4">
-      <Link to="/" aria-label="Torna alla pagina iniziale">
+      <Link to="/" aria-label="Gestora: torna alla pagina iniziale">
         <Logo className="text-foreground" />
       </Link>
       <Card className="w-full max-w-md">

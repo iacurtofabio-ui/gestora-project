@@ -71,7 +71,7 @@ party the free tables can still host — so the app never promises a seat it can
 |---|---|
 | **Backend** | ASP.NET Core 10 (LTS) · Entity Framework Core 10 · PostgreSQL · ASP.NET Identity + JWT · Quartz.NET (scheduled jobs) · FluentValidation · AutoMapper · Serilog |
 | **Frontend** | React 19 · TypeScript · Vite · React Router v7 · TanStack Query v5 · React Hook Form + Zod · shadcn/ui · Tailwind CSS v4 |
-| **Tests** | xUnit + Moq and integration tests on a real PostgreSQL (backend) · Vitest + Testing Library (frontend) |
+| **Tests** | xUnit + Moq and integration tests on a real PostgreSQL (backend) · Vitest + Testing Library and Playwright with axe (frontend) |
 | **Hosting** | Azure App Service (API, Docker image from Docker Hub) · Vercel (frontend) · Neon (PostgreSQL) |
 | **CI** | GitHub Actions: build and tests for both sides; when the backend changes on `main`, the Docker image is published only after the tests pass |
 
@@ -158,6 +158,12 @@ run on any other machine, because they empty the tables between tests.
 
 ```bash
 cd gestora-frontend && npm test && npm run lint && npm run build
+```
+
+Browser tests with Playwright, on their own ports and `gestora_e2e` database (the first time, `npx playwright install chromium firefox`):
+
+```bash
+cd gestora-frontend && npm run test:e2e
 ```
 
 Release history: [CHANGELOG.md](CHANGELOG.md).

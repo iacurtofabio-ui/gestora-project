@@ -13,9 +13,10 @@ export default defineConfig({
   },
   // V2-028: in locale /api va al backend su questa macchina, come su Vercel va ad Azure
   // (middleware.ts). Per il browser è lo stesso sito delle pagine: il cookie di sessione funziona.
+  // API_LOCALE: le prove con Playwright usano un backend tutto loro, su un'altra porta.
   server: {
     proxy: {
-      '/api': 'http://localhost:5099',
+      '/api': process.env.API_LOCALE ?? 'http://localhost:5099',
     },
   },
   test: {
@@ -24,5 +25,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    exclude: ['e2e/**', 'node_modules/**'],
   },
 })

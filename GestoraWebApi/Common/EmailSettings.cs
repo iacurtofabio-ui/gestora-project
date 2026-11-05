@@ -18,5 +18,11 @@ namespace GestoraWebApi.Common
 
         /// <summary>Indirizzo del frontend, usato per costruire i link nelle email (senza "/" finale).</summary>
         public string UrlFrontend { get; set; } = string.Empty;
+
+        /// <summary>
+        /// V3-001: solo sviluppo, con <see cref="Host"/> vuoto. Se valorizzata, ogni email si salva
+        /// anche come file in questa cartella: le prove nel browser leggono da lì il link.
+        /// </summary>
+        public string CartellaSviluppo { get; set; } = string.Empty;
     }
 }

@@ -435,6 +435,10 @@ su PostgreSQL vero, database `gestora_test`, pulito con Respawn prima di ogni te
 così i limiti di richieste non si sommano fra i test. Un endpoint nuovo va aggiunto alla `Matrice` di
 `RuoliTests`, altrimenti il test fallisce. Un test nuovo eredita da `TestIntegrazione`.
 
+`Development/SeedE2e.cs` (`--seed-e2e`, `V3-001-T03`) prepara i dati noti delle prove nel browser e
+parte solo sul database `gestora_e2e`, perché cancella anche gli utenti. `Email:CartellaSviluppo`, solo
+con `Email:Host` vuoto, salva le email anche come file (`InvioEmailSuLog`).
+
 `GestoraWebApi.Tests/Services/` — xUnit + Moq, Arrange/Act/Assert. Un file per service, più il
 motore puro, i job, i validator, il mapping, il repository, il modello, la configurazione di Data Protection, i middleware, la presa visione della privacy, il recupero password, «Il mio account», la pulizia del registro, gli account inattivi, il report CSV, i pareri, il cookie di sessione, la protezione CSRF e il passaggio da Vercel (`V2-028`). **527 test totali.**
 

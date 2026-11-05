@@ -59,14 +59,32 @@ cd "...\gestora-frontend"; npm run build
 cd "...\gestora-frontend"; npm run lint
 ```
 
-Valori attesi oggi: **527** test unitari e **55** d'integrazione del backend, **139** frontend, build
-senza errori, lint senza errori. I test del backend stanno in `GestoraWebApi.Tests/` e
+Valori attesi oggi: **530** test unitari e **55** d'integrazione del backend, **139** frontend, build
+senza errori, lint senza errori (resta un avviso noto su `PrenotazioneModal`). I test del backend stanno in `GestoraWebApi.Tests/` e
 `GestoraWebApi.IntegrationTests/`, accanto all'API: si lanciano dalla radice attraverso `Gestora.sln`.
 
 I test d'integrazione (`V3-001-T02`) accendono l'API vera su un database `gestora_test` che creano da
 soli sul PostgreSQL locale, con la stringa degli user secrets: **PostgreSQL deve essere acceso**. Fra un
 test e l'altro svuotano le tabelle, quindi partono solo su questa macchina e mai su `gestora_db`. In CI
 lavorano su un contenitore `postgres:18`, con la stringa nella variabile `GESTORA_TEST_DB`.
+
+**Prove nel browser** (`V3-001-T03`), prima di un rilascio che tocca l'interfaccia. Da
+`gestora-frontend`, circa 5 minuti, attesi **48** verdi (24 test in Chromium e Firefox):
+
+```powershell
+npm run test:e2e
+```
+
+La prima volta, per scaricare i browser:
+
+```powershell
+npx playwright install chromium firefox
+```
+
+Fanno tutto da sole: accendono backend e frontend su porte proprie (5199 e 5174) e rifanno il database
+`gestora_e2e`, quindi si possono lanciare con l'ambiente di sviluppo acceso. Serve PostgreSQL acceso.
+Le email finiscono in `node_modules/.e2e/posta`, i risultati dei test falliti in
+`node_modules/.e2e/risultati`: per vedere cosa è successo, `npx playwright show-trace` sul file `trace.zip`.
 
 > ⚠️ `npm test` **non controlla i tipi**, `npm run build` sì. Un test verde non sostituisce una
 > build pulita: è già capitato che la build trovasse un campo scritto male che i test non vedevano.

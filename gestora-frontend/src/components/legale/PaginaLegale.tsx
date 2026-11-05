@@ -14,7 +14,7 @@ export function PaginaLegale({ titolo, children }: { titolo: string; children: R
     <div className="min-h-screen flex flex-col bg-background">
       <header className="border-b">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
-          <Link to="/" aria-label="Torna alla pagina iniziale">
+          <Link to="/" aria-label="Gestora: torna alla pagina iniziale">
             <Logo className="text-foreground" />
           </Link>
           <ThemeToggle />

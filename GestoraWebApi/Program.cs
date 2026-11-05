@@ -456,6 +456,13 @@ if (app.Environment.IsDevelopment() && args.Contains(SeedVetrina.ArgomentoSeed))
     return;
 }
 
+// Dati noti per le prove nel browser (V3-001-T03): stesse protezioni, vedi SeedE2e.
+if (app.Environment.IsDevelopment() && args.Contains(SeedE2e.ArgomentoSeed))
+{
+    await SeedE2e.EseguiAsync(app.Services, app.Services.GetRequiredService<ILogger<Program>>());
+    return;
+}
+
 if (app.Environment.IsDevelopment() && args.Contains(SeedSviluppo.ArgomentoPassword))
 {
     var passwordLogger = app.Services.GetRequiredService<ILogger<Program>>();
