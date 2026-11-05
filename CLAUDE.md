@@ -30,9 +30,10 @@ capitoli 1, 2 e 3 approvati (`V3-005-T01`…`T03`). Nel libro niente voci intern
 test su PostgreSQL vero, verdi in locale e in CI, che ora parte anche su `v3`.
 **Prove nel browser fatte il 04/11/2026** (`V3-001-T03`, sviluppa Claude): 24 test con Playwright in
 Chromium e Firefox, `npm run test:e2e`. Trovato e corretto un difetto di accessibilità (`V3-007`).
-Capitolo 3 del libro approvato il 05/11/2026. Controlli non funzionali (`V3-001-T04`) quasi chiusi: esiti nel
-Piano di test, pagine caricate su richiesta (`V3-009`, da rimisurare in produzione dopo il rilascio).
-**Prossimo passo: Fabio installa OWASP ZAP**, poi scansione passiva in locale e chiusura di `V3-001-T04`.
+**Controlli non funzionali chiusi il 05/11/2026** (`V3-001-T04`): esiti nel Piano di test, OWASP ZAP senza
+avvisi High. Pagine caricate su richiesta (`V3-009`), da rimisurare in produzione dopo il rilascio.
+**Prossimo passo: `V3-001-T05`**, collaudo manuale di Fabio, con `V3-001-T06`, ripristino del backup;
+intanto `V3-005-T04`, capitolo 4 del libro, da approvare.
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
