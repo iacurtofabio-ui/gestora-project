@@ -77,7 +77,7 @@ namespace GestoraWebApi.Controllers
                     _logger.LogWarning("[{Controller}] - [{Method}]: Tentativo di primo avvio da {Ip} su installazione gia' configurata",
                         nameof(SetupController), nameof(CreaPrimoAdmin), HttpContext.GetIpAddress());
 
-                    return Conflict("L'installazione e' gia' configurata: esiste gia' un amministratore.");
+                    return this.Errore(StatusCodes.Status409Conflict, "L'installazione e' gia' configurata: esiste gia' un amministratore.");
                 }
 
                 var user = new ApplicationUser

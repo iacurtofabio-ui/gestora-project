@@ -32,8 +32,8 @@ test su PostgreSQL vero, verdi in locale e in CI, che ora parte anche su `v3`.
 Chromium e Firefox, `npm run test:e2e`. Trovato e corretto un difetto di accessibilità (`V3-007`).
 **Controlli non funzionali chiusi il 05/11/2026** (`V3-001-T04`): esiti nel Piano di test, OWASP ZAP senza
 avvisi High. Pagine caricate su richiesta (`V3-009`), da rimisurare in produzione dopo il rilascio.
-**Prossimo passo: `V3-001-T05`**, collaudo manuale di Fabio, con `V3-001-T06`, ripristino del backup;
-intanto `V3-005-T04`, capitolo 4 del libro, da approvare.
+**In corso dal 05/11/2026: `V3-001-T05`**, collaudo manuale di Fabio, poi `V3-001-T06`, ripristino del backup;
+capitoli 4 e 5 del libro approvati il 05/11/2026 (`V3-005-T04`, `T05`).
 Backend su **.NET 10 LTS** in produzione dal 16/10/2026 (`V2-017`), prima della fine del supporto
 a .NET 9 (10/11/2026).
 
@@ -50,7 +50,7 @@ con `Manutenzione__Attiva` su Azure e `VITE_MANUTENZIONE` su Vercel (`RUNBOOK.md
 | Backend | `https://gestora-api-emdvdqegg7g8gmaq.canadacentral-01.azurewebsites.net` — Azure App Service (F1), distribuzione continua da Docker Hub attiva |
 | Frontend | `https://gestora-project-xi.vercel.app` — Vercel; `/api` passa dal middleware di Vercel al backend Azure (`V2-028`). Azure rifiuta con 403 le chiamate dirette a `/api` |
 | Database | PostgreSQL su Neon (gratuito permanente): 10 migration EF + tabelle Quartz. L'app entra come `gestora_app` (solo dati), migration e backup con `neondb_owner` |
-| Test | **530** unitari e **57** d'integrazione del backend (xUnit, i secondi su PostgreSQL vero) + **139** frontend (Vitest) + **24** prove nel browser (Playwright, in due browser), tutti verdi |
+| Test | **530** unitari e **64** d'integrazione del backend (xUnit, i secondi su PostgreSQL vero) + **139** frontend (Vitest) + **24** prove nel browser (Playwright, in due browser), tutti verdi |
 | Modifiche al database | 10, tutte applicate in locale e su Neon (l'ultima, `PrivacyEAccount`, `V2-019`, su Neon il 27/10/2026). Elenco nel foglio *BE · Migration* del tracker |
 | Vulnerabilità note nelle librerie | Dependabot su `main` il 29/10/2026: nessun avviso aperto (`deepmerge`, «low», solo sviluppo via `shadcn`, chiuso come tollerabile). AutoMapper 12.0.1 accettata. Entrambe in `BACKLOG.md`, *Rischi accettati* |
 | Branch | si lavora su **`v3`** (dal 02/11/2026, aperto da `v2`, che resta come storico); `main` è quello pubblicato in produzione (ultimo merge `d700520`, 02/11/2026, solo documenti; ultimo tag **`v3.1.0`**, 02/11/2026) |

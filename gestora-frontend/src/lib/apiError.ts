@@ -82,8 +82,8 @@ export function emailNonConfermata(error: unknown): boolean {
 /**
  * Messaggio del login. Prima ogni errore Axios diventava "email o password errate": anche
  * l'account bloccato (423), il limite di tentativi (429) e il server spento o in avvio. Chi era
- * bloccato riprovava all'infinito una password giusta. Il backend risponde a 423/401 con una
- * stringa semplice, non con `{ message }`: per questo i testi sono scritti qui.
+ * bloccato riprovava all'infinito una password giusta. I testi sono scritti qui e non presi dal
+ * server perché al login la pagina li vuole più precisi del messaggio di `message`.
  */
 export function messaggioErroreLogin(error: unknown): string {
   if (!isAxiosError(error)) {

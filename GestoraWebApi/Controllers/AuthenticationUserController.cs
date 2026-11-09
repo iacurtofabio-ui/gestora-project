@@ -147,7 +147,7 @@ namespace GestoraWebApi.Controllers
         {
             var confermata = await _confermaEmail.ConfermaAsync(request.UserId, request.Token, HttpContext.GetIpAddress());
             if (!confermata)
-                return BadRequest("Il link di conferma non è valido o è scaduto. Richiedine uno nuovo dalla pagina di accesso.");
+                return this.Errore(StatusCodes.Status400BadRequest, "Il link di conferma non è valido o è scaduto. Richiedine uno nuovo dalla pagina di accesso.");
 
             return Ok("Email confermata. Ora puoi accedere.");
         }
@@ -184,7 +184,7 @@ namespace GestoraWebApi.Controllers
             var reimpostata = await _recuperoPassword.ReimpostaAsync(request.UserId, request.Token,
                 request.NuovaPassword, HttpContext.GetIpAddress());
             if (!reimpostata)
-                return BadRequest("Il link non è valido o è scaduto. Chiedine uno nuovo dalla pagina di accesso.");
+                return this.Errore(StatusCodes.Status400BadRequest, "Il link non è valido o è scaduto. Chiedine uno nuovo dalla pagina di accesso.");
 
             return Ok("Password aggiornata. Ora puoi accedere con la nuova password.");
         }
@@ -211,7 +211,7 @@ namespace GestoraWebApi.Controllers
                 _logger.LogWarning("[{Controller}] - [{Method}]: Login bloccato per troppi tentativi falliti da {Ip}",
                     nameof(AuthenticationUserController), nameof(Login), ip);
 
-                return StatusCode(StatusCodes.Status423Locked,
+                return this.Errore(StatusCodes.Status423Locked,
                     "Troppi tentativi sbagliati da questo dispositivo. Riprova tra 15 minuti.");
             }
 
@@ -222,7 +222,7 @@ namespace GestoraWebApi.Controllers
                 _logger.LogWarning("[{Controller}] - [{Method}]: Accesso non autorizzato da {Ip} (utente inesistente)",
                     nameof(AuthenticationUserController), nameof(Login), ip);
 
-                return Unauthorized("Credenziali non valide.");
+                return this.Errore(StatusCodes.Status401Unauthorized, "Credenziali non valide.");
             }
 
             // CheckPasswordAsync e non SignInManager.CheckPasswordSignInAsync: quello rifiuterebbe
@@ -233,7 +233,7 @@ namespace GestoraWebApi.Controllers
                 _logger.LogWarning("[{Controller}] - [{Method}]: Accesso non autorizzato per {UserId} (password errata, da {Ip})",
                     nameof(AuthenticationUserController), nameof(Login), user.Id, ip);
 
-                return Unauthorized("Credenziali non valide.");
+                return this.Errore(StatusCodes.Status401Unauthorized, "Credenziali non valide.");
             }
 
             _tentativiAccesso.Azzera(request.Email, ip);
@@ -294,7 +294,7 @@ namespace GestoraWebApi.Controllers
             var user = await _userManager.FindByIdAsync(User.GetAuthenticatedUserId());
             var exp = User.FindFirstValue(JwtRegisteredClaimNames.Exp);
             if (user == null || !long.TryParse(exp, NumberStyles.Integer, CultureInfo.InvariantCulture, out var secondi))
-                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+                return this.Errore(StatusCodes.Status401Unauthorized, "Sessione scaduta. Effettua di nuovo l'accesso.");
 
             var roles = await _userManager.GetRolesAsync(user);
             return Ok(new SessioneDTO(user.Id, user.Email!, roles,
@@ -335,12 +335,12 @@ namespace GestoraWebApi.Controllers
                 _logger.LogInformation("[{Controller}] - [{Method}]: Rinnovo rifiutato per {UserId}, sessione al limite massimo",
                     nameof(AuthenticationUserController), nameof(RinnovaToken), userId);
 
-                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+                return this.Errore(StatusCodes.Status401Unauthorized, "Sessione scaduta. Effettua di nuovo l'accesso.");
             }
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+                return this.Errore(StatusCodes.Status401Unauthorized, "Sessione scaduta. Effettua di nuovo l'accesso.");
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = _tokenGenerator.GenerateToken(user.Id, user.Email!, roles,
@@ -361,7 +361,7 @@ namespace GestoraWebApi.Controllers
         {
             var user = await _userManager.FindByIdAsync(User.GetAuthenticatedUserId());
             if (user == null)
-                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+                return this.Errore(StatusCodes.Status401Unauthorized, "Sessione scaduta. Effettua di nuovo l'accesso.");
 
             return Ok(new
             {
@@ -377,7 +377,7 @@ namespace GestoraWebApi.Controllers
         {
             var user = await _userManager.FindByIdAsync(User.GetAuthenticatedUserId());
             if (user == null)
-                return Unauthorized("Sessione scaduta. Effettua di nuovo l'accesso.");
+                return this.Errore(StatusCodes.Status401Unauthorized, "Sessione scaduta. Effettua di nuovo l'accesso.");
 
             // Gia' accettata: nessuna scrittura e nessuna riga doppia nel registro.
             if (!PresaVisionePrivacy.DaAccettare(user, _privacy.Versione))
@@ -400,18 +400,18 @@ namespace GestoraWebApi.Controllers
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleDTO dto)
         {
             if (!new[] { Roles.Admin, Roles.Staff, Roles.Cliente }.Contains(dto.Role))
-                return BadRequest($"Ruolo '{dto.Role}' non valido. Ruoli disponibili: Admin, Staff, Cliente.");
+                return this.Errore(StatusCodes.Status400BadRequest, $"Ruolo '{dto.Role}' non valido. Ruoli disponibili: Admin, Staff, Cliente.");
 
             var user = await _userManager.FindByIdAsync(dto.UserId);
             if (user == null)
-                return NotFound($"Utente con ID '{dto.UserId}' non trovato.");
+                return this.Errore(StatusCodes.Status404NotFound, $"Utente con ID '{dto.UserId}' non trovato.");
 
             if (await _userManager.IsInRoleAsync(user, dto.Role))
-                return BadRequest($"L'utente è già nel ruolo '{dto.Role}'.");
+                return this.Errore(StatusCodes.Status400BadRequest, $"L'utente è già nel ruolo '{dto.Role}'.");
 
             var result = await _userManager.AddToRoleAsync(user, dto.Role);
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                throw ErroriIdentity.ComeValidationException(result, "Assegnazione del ruolo non riuscita.");
 
             // AUD-M6: i token gia' emessi portano i ruoli vecchi. Cambiare lo stamp li invalida:
             // l'utente rifa' l'accesso e riceve un token con i ruoli giusti.
@@ -437,18 +437,18 @@ namespace GestoraWebApi.Controllers
             // rimasti a zero Admin, la schermata di primo avvio (SetupController, anonima) si
             // riaprirebbe a chiunque.
             if (dto.Role == Roles.Admin && dto.UserId == User.GetAuthenticatedUserId())
-                return BadRequest("Non è possibile togliere a se stessi il ruolo Admin: chiedilo a un altro Admin.");
+                return this.Errore(StatusCodes.Status400BadRequest, "Non è possibile togliere a se stessi il ruolo Admin: chiedilo a un altro Admin.");
 
             var user = await _userManager.FindByIdAsync(dto.UserId);
             if (user == null)
-                return NotFound($"Utente con ID '{dto.UserId}' non trovato.");
+                return this.Errore(StatusCodes.Status404NotFound, $"Utente con ID '{dto.UserId}' non trovato.");
 
             if (!await _userManager.IsInRoleAsync(user, dto.Role))
-                return BadRequest($"L'utente non è nel ruolo '{dto.Role}'.");
+                return this.Errore(StatusCodes.Status400BadRequest, $"L'utente non è nel ruolo '{dto.Role}'.");
 
             var result = await _userManager.RemoveFromRoleAsync(user, dto.Role);
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                throw ErroriIdentity.ComeValidationException(result, "Rimozione del ruolo non riuscita.");
 
             // AUD-M6: senza questo l'utente conservava il ruolo tolto fino alla scadenza del token.
             await _userManager.UpdateSecurityStampAsync(user);
@@ -508,7 +508,7 @@ namespace GestoraWebApi.Controllers
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                return NotFound($"Utente con ID '{id}' non trovato.");
+                return this.Errore(StatusCodes.Status404NotFound, $"Utente con ID '{id}' non trovato.");
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -528,7 +528,7 @@ namespace GestoraWebApi.Controllers
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                return NotFound($"Utente con ID '{id}' non trovato.");
+                return this.Errore(StatusCodes.Status404NotFound, $"Utente con ID '{id}' non trovato.");
 
             var nomeCambiato = !string.IsNullOrWhiteSpace(dto.UserName) &&
                                !string.Equals(dto.UserName, user.UserName, StringComparison.Ordinal);
@@ -582,11 +582,11 @@ namespace GestoraWebApi.Controllers
         {
             var currentUserId = User.GetAuthenticatedUserId();
             if (currentUserId == id)
-                return BadRequest("Non è possibile eliminare il proprio account.");
+                return this.Errore(StatusCodes.Status400BadRequest, "Non è possibile eliminare il proprio account.");
 
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                return NotFound($"Utente con ID '{id}' non trovato.");
+                return this.Errore(StatusCodes.Status404NotFound, $"Utente con ID '{id}' non trovato.");
 
             // REV-038: la relazione utente -> prenotazioni non e' piu' a cascata, quindi il
             // database rifiuterebbe comunque l'eliminazione. Il controllo si fa qui per dare un
@@ -618,7 +618,7 @@ namespace GestoraWebApi.Controllers
             });
 
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                throw ErroriIdentity.ComeValidationException(result, "Eliminazione dell'utente non riuscita.");
 
             _logger.LogWarning("[{Controller}] - [{Method}]: Utente {Id} eliminato da Admin {AdminId}",
                 nameof(AuthenticationUserController), nameof(DeleteUser), id, currentUserId);
@@ -633,14 +633,14 @@ namespace GestoraWebApi.Controllers
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
-                return NotFound($"Utente con ID '{id}' non trovato.");
+                return this.Errore(StatusCodes.Status404NotFound, $"Utente con ID '{id}' non trovato.");
 
             // Genera un token di reset e applica subito la nuova password
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
 
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                throw ErroriIdentity.ComeValidationException(result, "Reset della password non riuscito: controlla i dati inseriti.");
 
             _logger.LogWarning("[{Controller}] - [{Method}]: Password resettata per utente {Id}",
                 nameof(AuthenticationUserController), nameof(ResetPassword), id);

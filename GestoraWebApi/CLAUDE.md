@@ -36,6 +36,9 @@ Pattern: Controller → Service → Repository (layered).
   `ConflictException` → 409 (**unica** eccezione che genera 409: le regole di dominio che
   rifiutano un'operazione sollevano questa), resto → 500.
   **Non lanciare risposte HTTP dai service** — solo eccezioni tipizzate.
+  Se è il controller a decidere l'errore, usa `this.Errore(stato, messaggio)` e per Identity
+  `ErroriIdentity.ComeValidationException`: una stringa semplice nel corpo non arriva all'utente,
+  il frontend legge `message` (`V3-010`).
   ⚠️ `InvalidOperationException` **non è mappata apposta**: se arriva al middleware è un bug
   interno vero, deve restare un 500 (non "correggerla" aggiungendola alla mappa).
 - `Migrations/` — EF Core. **Applicate solo da Fabio** (decisione 2 di radice): Claude prepara
